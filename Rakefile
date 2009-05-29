@@ -11,6 +11,7 @@ begin
     gem.homepage = "http://sixfriedrice.com/wp/products/rfm/"
     gem.authors = ["Geoff Coffey", "Mufaddal Khumri", "Atsushi Matsuo", "Larry Sprock"]
     gem.files = FileList['lib/*.rb']
+    gem.add_dependency('hpricot', '>= 0.8.1')
     # gem is a Gem::Specification... see http://www.rubygems.org/read/chapter/20 for additional settings
   end
 

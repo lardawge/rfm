@@ -2,6 +2,12 @@
 
 == Installation
 
+Run the following if you haven't already:
+
+	gem sources -a http://gems.github.com
+	
+Followed by:
+
   gem install lardawge-rfm
 
 Once the gem is installed, you can use rfm in your ruby scripts by requiring it:
