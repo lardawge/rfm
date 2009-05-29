@@ -1,8 +1,6 @@
-This documentation is hastily thrown together and probably contains lots of errors. Needless to say, this will need to be documented better soon :)
+= Rfm
 
 == Installation
-
-rfm is availabl as a gem from rubyforge.org, so you can get it like this:
 
   gem install lardawge-rfm
 
