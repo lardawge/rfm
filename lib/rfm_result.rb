@@ -310,8 +310,7 @@ module Rfm::Result
     
     def method_missing (symbol, *attrs)
       # check for simple getter
-      val = self[symbol.to_s]
-      return val if val != nil
+      return self[symbol.to_s] if self.include?(symbol.to_s) 
 
       # check for setter
       symbol_name = symbol.to_s
@@ -396,7 +395,7 @@ module Rfm::Result
       @max_repeats = field.attributes['max-repeats']
       @global = field.attributes['global']
       
-      @laded = false
+      @loaded = false
     end
     
     attr_reader :name, :result, :type, :max_repeats, :global
