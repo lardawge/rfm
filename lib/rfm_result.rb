@@ -71,48 +71,47 @@ module Rfm::Result
       @total_count = nil
       @foundset_count = nil
       
-      doc = REXML::Document.new(fmresultset)
-      root = doc.root
+      doc = Hpricot.XML(fmresultset)
       
       # check for errors
-      error = root.elements['error'].attributes['code'].to_i
+      error = doc.search('error').attr('code').to_i
       if error != 0 && (error != 401 || @server.state[:raise_on_401])
         raise Rfm::Error::FileMakerError.getError(error) 
       end
       
       # ascertain date and time formats
-      datasource = root.elements['datasource']
-      @date_format = convertFormatString(datasource.attributes['date-format'])
-      @time_format = convertFormatString(datasource.attributes['time-format'])
-      @timestamp_format = convertFormatString(datasource.attributes['timestamp-format'])
-
+      datasource = doc.search('datasource')
+      @date_format = convertFormatString(datasource.attr('date-format'))
+      @time_format = convertFormatString(datasource.attr('time-format'))
+      @timestamp_format = convertFormatString(datasource.attr('timestamp-format'))
+      
       # process count metadata
       @total_count = datasource.attributes['total-count'].to_i
       @foundset_count = root.elements['resultset'].attributes['count'].to_i
       
       # process field metadata
-      root.elements['metadata'].each_element('field-definition') { |field|
+      doc.search('field-definition').each do |field|
         name = field.attributes['name']
         @fields[name] = Field.new(self, field)
-      }
+      end
       @fields.freeze
       
       # process relatedset metadata
-      root.elements['metadata'].each_element('relatedset-definition') { |relatedset|
-        table = relatedset.attributes['table']
+      doc.search('relatedset-definition').each do |relatedset|
+        table = relatedset.attr('table')
         fields = {}
-        relatedset.each_element('field-definition') { |field|
-          name = field.attributes['name'].sub(Regexp.new(table + '::'), '')
+        relatedset.search('field-definition').each do |field|
+          name = field.attr('name').sub(Regexp.new(table + '::'), '')
           fields[name] = Field.new(self, field)
-        }
+        end
         @portals[table] = fields
-      }
+      end
       @portals.freeze
       
       # build rows
-      root.elements['resultset'].each_element('record') { |record|
+      doc.search('record').each do |record|
         self << Record.new(record, self, @fields, @layout)
-      }
+      end
     end  
         
     attr_reader :server, :fields, :portals, :date_format, :time_format, :timestamp_format, :total_count, :foundset_count, :layout
@@ -236,11 +235,13 @@ module Rfm::Result
       
       @loaded = false
       
-      row_element.each_element('field') { |field| 
+      row_element.search('field').each do |field| 
         field_name = field.attributes['name']
         field_name.sub!(Regexp.new(portal + '::'), '') if portal
         datum = []
-        field.each_element('data') {|x| datum.push(fields[field_name].coerce(x.text))}
+        field.search('data').each do |x| 
+          datum.push(fields[field_name].coerce(x.inner_text))
+        end
         if datum.length == 1
           self[field_name] = datum[0]
         elsif datum.length == 0
@@ -248,18 +249,17 @@ module Rfm::Result
         else
           self[field_name] = datum
         end
-      }
+      end
       
       @portals = Rfm::Util::CaseInsensitiveHash.new
-      row_element.each_element('relatedset') { |relatedset|
+      row_element.search('relatedset').each do |relatedset|
         table = relatedset.attributes['table']
         records = []
-        relatedset.each_element('record') { |record|
+        relatedset.search('record').each do |record|
           records << Record.new(record, @resultset, @resultset.portals[table], @layout, table)
-        }
+        end
         @portals[table] = records
-      }
-      
+      end      
       @loaded = true
     end
     
