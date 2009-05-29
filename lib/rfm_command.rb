@@ -66,9 +66,14 @@ module Rfm
     #
     # * *host* the hostname of the Web Publishing Engine (WPE) server (defaults to 'localhost')
     #
-    # * *port* the port number the WPE is listening no (defaults to 80)
+    # * *port* the port number the WPE is listening no (defaults to 80 unless *ssl* +true+ which sets it to 443)
     #
     # * *ssl* +true+ if you want to use SSL (HTTPS) to connect to FileMaker (defaults to +false+)
+    #
+    # * *root_cert* name of pem file for certificate verification (Root cert from certificate authority who issued certificate.
+    #   If self signed certificate do not use this option!!). You can download the entire bundle of CA Root Certificates
+    #   from http://curl.haxx.se/ca/cacert.pem. Place the pem file in config directory. (WARNING: If left blank there is no guarantee that your
+    #   session is secure)
     #
     # * *account_name* the default account name to log in to databases with (you can also supply a
     #   account name on a per-database basis if necessary)
@@ -94,6 +99,7 @@ module Rfm
         :host => 'localhost',
         :port => 80,
         :ssl => false,
+        :root_cert => '',
         :account_name => '',
         :password => '',
         :log_actions => false,
@@ -111,7 +117,7 @@ module Rfm
       
       @host_name = @state[:host]
       @scheme = @state[:ssl] ? "https" : "http"
-      @port = @state[:port]
+      @port = @state[:ssl] && options[:port].blank? ? 443 : @state[:port]
       
       @db = Rfm::Factory::DbFactory.new(self)
     end
@@ -187,7 +193,17 @@ module Rfm
       request.basic_auth(account_name, password)
       request.set_form_data(post_data)
 
-      response = Net::HTTP.start(host_name, port) { |http|
+      response = Net::HTTP.new(host_name, port)
+      if @scheme == "https"  # enable SSL/TLS
+        response.use_ssl = true
+        unless @state[:root_cert].blank?
+          response.verify_mode = OpenSSL::SSL::VERIFY_PEER
+          response.ca_file = File.join("#{RAILS_ROOT}/config/", @state[:root_cert])
+        else
+          response.verify_mode = OpenSSL::SSL::VERIFY_NONE
+        end
+      end
+      response = response.start { |http|
         http.request(request)
       }
       
