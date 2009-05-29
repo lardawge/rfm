@@ -239,7 +239,16 @@ module Rfm
               result["-sortfield.1"] = value
             end
           when :sort_order:
-            result['-sortorder'] = value
+            if value.kind_of? Array
+              if value.size > 9
+                raise Rfm::Error::ParameterError.new(":sort_order can have at most 9 fields, but you passed an array with #{value.size} elements.")
+              end
+              value.each_index {|i|
+                result["-sortorder.#{i+1}"] = value[i]
+              }
+            else
+              result["-sortorder.1"] = value
+            end
           when :post_script:
             if value.class == Array
               result['-script'] = value[0]

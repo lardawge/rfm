@@ -4,7 +4,7 @@
 
 Run the following if you haven't already:
 
-	gem sources -a http://gems.github.com
+  gem sources -a http://gems.github.com
 	
 Followed by:
 
