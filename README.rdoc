@@ -1,5 +1,13 @@
 = Rfm
 
+Rfm was primarily designed by Six Fried Rice co-founder Geoff Coffey.
+
+Other lead contributors:
+
+ * Mufaddal Khumri helped architect Rfm in the most ruby-like way possible. He also contributed the outstanding error handling code and a comprehensive hierarchy of error classes.
+ * Atsushi Matsuo was an early Rfm tester, and provided outstanding feedback, critical code fixes, and a lot of web exposure. We’re grateful for his support.
+ * Jesse Antunes helped ensure that Rfm is stable and functional.
+
 == Installation
 
 Run the following if you haven't already:
@@ -231,3 +239,7 @@ So, for an annoying, but detailed load of output, make a connection like this:
   )
 
 These options will change in the future. They're only there now as a quick-easy way for me to track down problems. I'm open to suggestions for what kind of login options will make sense in the final release.
+
+== Copyright
+
+Copyright (c) 2007 Geoff Coffey. See LICENSE for details.
