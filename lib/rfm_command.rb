@@ -58,6 +58,46 @@ module Rfm
   
   class Server
     
+    #
+    # SSL AND CERTIFICATE VERIFICATION ARE ON BY DEFAULT
+    #     
+    # Example to turn off SSL:
+    # 
+    # response = myServer.do_action(
+    #           :host => 'localhost',
+    #           :account_name => 'sample',
+    #           :password => '12345',
+    #           :ssl => false 
+    #           )
+    #           
+    # Example using SSL without *root_cert*:
+    #           
+    # response = myServer.do_action(
+    #           :host => 'localhost',
+    #           :account_name => 'sample',
+    #           :password => '12345',
+    #           :root_cert => false 
+    #           )
+    #           
+    # Example using SSL with *root_cert* at file root:
+    # 
+    # response = myServer.do_action(
+    #            :host => 'localhost',
+    #            :account_name => 'sample',
+    #            :password => '12345',
+    #            :root_cert_name => 'example.pem' 
+    #            )
+    #            
+    # Example using SSL with *root_cert* specifying *root_cert_path*:
+    # 
+    # response = myServer.do_action(
+    #            :host => 'localhost',
+    #            :account_name => 'sample',
+    #            :password => '12345',
+    #            :root_cert_name => 'example.pem'
+    #            :root_cert_path => '/usr/cert_file/'
+    #            )
+    #
     # To create a Server obejct, you typically need at least a host name:
     # 
     #   myServer = Rfm::Server.new({:host => 'my.host.com'})
@@ -68,12 +108,18 @@ module Rfm
     #
     # * *port* the port number the WPE is listening no (defaults to 80 unless *ssl* +true+ which sets it to 443)
     #
-    # * *ssl* +true+ if you want to use SSL (HTTPS) to connect to FileMaker (defaults to +false+)
+    # * *ssl* +false+ if you want to turn SSL (HTTPS) off when connecting to connect to FileMaker (default is +true+)
     #
-    # * *root_cert* name of pem file for certificate verification (Root cert from certificate authority who issued certificate.
+    # If you have SSL on and want
+    # * *root_cert* +false+ if you do not want to verify your SSL session (default is +true+). 
+    #   You will want to turn this off if you are using a self signed certificate and do not have a certificate authority cert file.
+    #   If you choose this option you will need to provide a cert *root_cert_name* and *root_cert_path* (if not in root directory).
+    #
+    # * *root_cert_name* name of pem file for certificate verification (Root cert from certificate authority who issued certificate.
     #   If self signed certificate do not use this option!!). You can download the entire bundle of CA Root Certificates
-    #   from http://curl.haxx.se/ca/cacert.pem. Place the pem file in config directory. (WARNING: If left blank there is no guarantee that your
-    #   session is secure)
+    #   from http://curl.haxx.se/ca/cacert.pem. Place the pem file in config directory.
+    #
+    # * *root_cert_path* path to cert file. (defaults to '/' if no path given)
     #
     # * *account_name* the default account name to log in to databases with (you can also supply a
     #   account name on a per-database basis if necessary)
@@ -94,12 +140,15 @@ module Rfm
     # * *raise_on_401* although RFM raises error when FileMaker returns error responses, it typically
     #   ignores FileMaker's 401 error (no records found) and returns an empty record set instead; if you
     #   prefer a raised error when a find produces no errors, set this option to +true+
+    
     def initialize(options)
       @state = {
         :host => 'localhost',
         :port => 80,
-        :ssl => false,
-        :root_cert => '',
+        :ssl => true,
+        :root_cert => true,
+        :root_cert_name => '',
+        :root_cert_path => '/',
         :account_name => '',
         :password => '',
         :log_actions => false,
@@ -196,9 +245,9 @@ module Rfm
       response = Net::HTTP.new(host_name, port)
       if @scheme == "https"  # enable SSL
         response.use_ssl = true
-        unless @state[:root_cert].empty?
+        if @state[:root_cert]
           response.verify_mode = OpenSSL::SSL::VERIFY_PEER
-          response.ca_file = File.join("#{RAILS_ROOT}/config/", @state[:root_cert])
+          response.ca_file = File.join(@state[:root_cert_path], @state[:root_cert_name])
         else
           response.verify_mode = OpenSSL::SSL::VERIFY_NONE
         end
