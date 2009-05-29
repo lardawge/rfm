@@ -5,7 +5,7 @@ Rfm was primarily designed by Six Fried Rice co-founder Geoff Coffey.
 Other lead contributors:
 
 - Mufaddal Khumri helped architect Rfm in the most ruby-like way possible. He also contributed the outstanding error handling code and a comprehensive hierarchy of error classes.
-- Atsushi Matsuo was an early Rfm tester, and provided outstanding feedback, critical code fixes, and a lot of web exposure. We’re grateful for his support.
+- Atsushi Matsuo was an early Rfm tester, and provided outstanding feedback, critical code fixes, and a lot of web exposure.
 - Jesse Antunes helped ensure that Rfm is stable and functional.
 
 == Installation
