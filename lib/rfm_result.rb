@@ -86,8 +86,8 @@ module Rfm::Result
       @timestamp_format = convertFormatString(datasource.attr('timestamp-format'))
       
       # process count metadata
-      @total_count = datasource.attributes['total-count'].to_i
-      @foundset_count = root.elements['resultset'].attributes['count'].to_i
+      @total_count = datasource.attr('total-count').to_i
+      @foundset_count = doc.search('resultset').attr('count').to_i
       
       # process field metadata
       doc.search('field-definition').each do |field|
