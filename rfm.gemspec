@@ -2,7 +2,7 @@
 
 Gem::Specification.new do |s|
   s.name = %q{rfm}
-  s.version = "1.0.2"
+  s.version = "1.1.0"
 
   s.required_rubygems_version = Gem::Requirement.new(">= 0") if s.respond_to? :required_rubygems_version=
   s.authors = ["Geoff Coffey", "Mufaddal Khumri", "Atsushi Matsuo", "Larry Sprock"]
@@ -10,7 +10,8 @@ Gem::Specification.new do |s|
   s.description = %q{Rfm brings your FileMaker data to Ruby with elegance and speed. Now your Ruby scripts and Rails applications can talk directly to your FileMaker server with a syntax that just feels right.}
   s.email = %q{http://groups.google.com/group/rfmcommunity}
   s.extra_rdoc_files = [
-    "README.rdoc"
+    "LICENSE",
+     "README.rdoc"
   ]
   s.files = [
     "lib/rfm.rb",
