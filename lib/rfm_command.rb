@@ -1,6 +1,6 @@
-require 'net/http'
-require 'rexml/document'
+require 'net/https'
 require 'cgi'
+require 'hpricot'
 
 # This module includes classes that represent base FileMaker concepts like servers,
 # layouts, and scripts. These classes allow you to communicate with FileMaker Server,
@@ -117,7 +117,7 @@ module Rfm
       
       @host_name = @state[:host]
       @scheme = @state[:ssl] ? "https" : "http"
-      @port = @state[:ssl] && options[:port].blank? ? 443 : @state[:port]
+      @port = @state[:ssl] && options[:port].nil? ? 443 : @state[:port]
       
       @db = Rfm::Factory::DbFactory.new(self)
     end
@@ -194,9 +194,9 @@ module Rfm
       request.set_form_data(post_data)
 
       response = Net::HTTP.new(host_name, port)
-      if @scheme == "https"  # enable SSL/TLS
+      if @scheme == "https"  # enable SSL
         response.use_ssl = true
-        unless @state[:root_cert].blank?
+        unless @state[:root_cert].empty?
           response.verify_mode = OpenSSL::SSL::VERIFY_PEER
           response.ca_file = File.join("#{RAILS_ROOT}/config/", @state[:root_cert])
         else
