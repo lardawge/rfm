@@ -2,7 +2,7 @@
 
 Gem::Specification.new do |s|
   s.name = %q{rfm}
-  s.version = "1.0.1"
+  s.version = "1.0.2"
 
   s.required_rubygems_version = Gem::Requirement.new(">= 0") if s.respond_to? :required_rubygems_version=
   s.authors = ["Geoff Coffey", "Mufaddal Khumri", "Atsushi Matsuo", "Larry Sprock"]
@@ -18,7 +18,7 @@ Gem::Specification.new do |s|
      "lib/rfm_error.rb",
      "lib/rfm_factory.rb",
      "lib/rfm_result.rb",
-     "lib/rfm_utility.rb"
+     "lib/rfm_util.rb"
   ]
   s.homepage = %q{http://sixfriedrice.com/wp/products/rfm/}
   s.rdoc_options = ["--charset=UTF-8"]
