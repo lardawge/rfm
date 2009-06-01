@@ -53,7 +53,7 @@ module Rfm
   # In addition to the +db+ attribute, Server has a few other useful attributes:
   #
   # * *host_name* is the host name this server points to
-  # * *post* is the port number this server communicates on
+  # * *port* is the port number this server communicates on
   # * *state* is a hash of all server options used to initialize this server
   
   class Server
@@ -63,7 +63,7 @@ module Rfm
     #     
     # Example to turn off SSL:
     # 
-    # response = myServer.do_action(
+    #   response = myServer.do_action(
     #           :host => 'localhost',
     #           :account_name => 'sample',
     #           :password => '12345',
@@ -72,7 +72,7 @@ module Rfm
     #           
     # Example using SSL without *root_cert*:
     #           
-    # response = myServer.do_action(
+    #   response = myServer.do_action(
     #           :host => 'localhost',
     #           :account_name => 'sample',
     #           :password => '12345',
@@ -81,7 +81,7 @@ module Rfm
     #           
     # Example using SSL with *root_cert* at file root:
     # 
-    # response = myServer.do_action(
+    #   response = myServer.do_action(
     #            :host => 'localhost',
     #            :account_name => 'sample',
     #            :password => '12345',
@@ -90,7 +90,7 @@ module Rfm
     #            
     # Example using SSL with *root_cert* specifying *root_cert_path*:
     # 
-    # response = myServer.do_action(
+    #   response = myServer.do_action(
     #            :host => 'localhost',
     #            :account_name => 'sample',
     #            :password => '12345',
@@ -107,19 +107,6 @@ module Rfm
     # * *host* the hostname of the Web Publishing Engine (WPE) server (defaults to 'localhost')
     #
     # * *port* the port number the WPE is listening no (defaults to 80 unless *ssl* +true+ which sets it to 443)
-    #
-    # * *ssl* +false+ if you want to turn SSL (HTTPS) off when connecting to connect to FileMaker (default is +true+)
-    #
-    # If you have SSL on and want
-    # * *root_cert* +false+ if you do not want to verify your SSL session (default is +true+). 
-    #   You will want to turn this off if you are using a self signed certificate and do not have a certificate authority cert file.
-    #   If you choose this option you will need to provide a cert *root_cert_name* and *root_cert_path* (if not in root directory).
-    #
-    # * *root_cert_name* name of pem file for certificate verification (Root cert from certificate authority who issued certificate.
-    #   If self signed certificate do not use this option!!). You can download the entire bundle of CA Root Certificates
-    #   from http://curl.haxx.se/ca/cacert.pem. Place the pem file in config directory.
-    #
-    # * *root_cert_path* path to cert file. (defaults to '/' if no path given)
     #
     # * *account_name* the default account name to log in to databases with (you can also supply a
     #   account name on a per-database basis if necessary)
@@ -140,6 +127,22 @@ module Rfm
     # * *raise_on_401* although RFM raises error when FileMaker returns error responses, it typically
     #   ignores FileMaker's 401 error (no records found) and returns an empty record set instead; if you
     #   prefer a raised error when a find produces no errors, set this option to +true+
+    #
+    #SSL Options:
+    #
+    # * *ssl* +false+ if you want to turn SSL (HTTPS) off when connecting to connect to FileMaker (default is +true+)
+    #
+    # If you are using SSL on and want to verify the certificate use the following options:
+    #
+    # * *root_cert* +false+ if you do not want to verify your SSL session (default is +true+). 
+    #   You will want to turn this off if you are using a self signed certificate and do not have a certificate authority cert file.
+    #   If you choose this option you will need to provide a cert *root_cert_name* and *root_cert_path* (if not in root directory).
+    #
+    # * *root_cert_name* name of pem file for certificate verification (Root cert from certificate authority who issued certificate.
+    #   If self signed certificate do not use this option!!). You can download the entire bundle of CA Root Certificates
+    #   from http://curl.haxx.se/ca/cacert.pem. Place the pem file in config directory.
+    #
+    # * *root_cert_path* path to cert file. (defaults to '/' if no path given)
     
     def initialize(options)
       @state = {
