@@ -8,6 +8,8 @@ Other lead contributors:
 - Atsushi Matsuo was an early Rfm tester, and provided outstanding feedback, critical code fixes, and a lot of web exposure.
 - Jesse Antunes helped ensure that Rfm is stable and functional.
 
+Rdoc location: http://rdoc.info/projects/lardawge/rfm
+
 == Installation
 
 Run the following if you haven't already:
@@ -25,6 +27,7 @@ Once the gem is installed, you can use rfm in your ruby scripts by requiring it:
 
 == Connecting
 
+IMPORTANT:SSL and Certificate verification are on by default. Please see Server#new in rdocs for explanation and setup.
 You connect with the Rfm::Server object. This little buddy will be your window into FileMaker data.
 
   require 'rfm/rfm'
@@ -32,7 +35,8 @@ You connect with the Rfm::Server object. This little buddy will be your window i
   my_server = Rfm::Server.new(
     :host => 'myservername',
     :username => 'user',
-    :password => 'pw'
+    :password => 'pw',
+		:ssl => false
   )
 
 if your web publishing engine runs on a port other than 80, you can provide the port number as well:
@@ -41,7 +45,8 @@ if your web publishing engine runs on a port other than 80, you can provide the 
     :host => 'myservername',
     :username => 'user',
     :password => 'pw',
-    :port => 8080  
+    :port => 8080, 
+		:ssl => false
   )
 
 == Databases and Layouts
@@ -242,4 +247,4 @@ These options will change in the future. They're only there now as a quick-easy 
 
 == Copyright
 
-Copyright (c) 2007 Geoff Coffey. See LICENSE for details.
+Copyright (c) 2007 Six Fried Rice, LLC and Mufaddal Khumr. See LICENSE for details.
