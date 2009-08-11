@@ -227,8 +227,8 @@ module Rfm::Result
     # Initializes a Record object. You really really never need to do this yourself. Instead, get your records
     # from a ResultSet object.
     def initialize(row_element, resultset, fields, layout, portal=nil)
-      @record_id = row_element.attributes['record-id']
-      @mod_id = row_element.attributes['mod-id']
+      @record_id = row_element['record-id']
+      @mod_id = row_element['mod-id']
       @mods = {}
       @resultset = resultset
       @layout = layout
@@ -236,7 +236,7 @@ module Rfm::Result
       @loaded = false
       
       row_element.search('field').each do |field| 
-        field_name = field.attributes['name']
+        field_name = field['name']
         field_name.sub!(Regexp.new(portal + '::'), '') if portal
         datum = []
         field.search('data').each do |x| 
@@ -253,7 +253,7 @@ module Rfm::Result
       
       @portals = Rfm::Util::CaseInsensitiveHash.new
       row_element.search('relatedset').each do |relatedset|
-        table = relatedset.attributes['table']
+        table = relatedset['table']
         records = []
         relatedset.search('record').each do |record|
           records << Record.new(record, @resultset, @resultset.portals[table], @layout, table)
@@ -395,11 +395,11 @@ module Rfm::Result
     # ResultSet::fields
     def initialize(result_set, field)
       @result_set = result_set
-      @name = field.attributes['name']
-      @result = field.attributes['result']
-      @type = field.attributes['type']
-      @max_repeats = field.attributes['max-repeats']
-      @global = field.attributes['global']
+      @name = field['name']
+      @result = field['result']
+      @type = field['type']
+      @max_repeats = field['max-repeats']
+      @global = field['global']
       
       @loaded = false
     end
@@ -428,6 +428,8 @@ module Rfm::Result
         return DateTime.strptime(value, @result_set.timestamp_format)
       when "container"
         return URI.parse("#{@result_set.server.scheme}://#{@result_set.server.host_name}:#{@result_set.server.port}#{value}")
+      else
+        return nil
       end
     end
   end

@@ -36,7 +36,7 @@ You connect with the Rfm::Server object. This little buddy will be your window i
     :host => 'myservername',
     :username => 'user',
     :password => 'pw',
-		:ssl => false
+    :ssl => false
   )
 
 if your web publishing engine runs on a port other than 80, you can provide the port number as well:
@@ -46,7 +46,7 @@ if your web publishing engine runs on a port other than 80, you can provide the 
     :username => 'user',
     :password => 'pw',
     :port => 8080, 
-		:ssl => false
+    :ssl => false
   )
 
 == Databases and Layouts
