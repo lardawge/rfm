@@ -7,6 +7,7 @@ Other lead contributors:
 - Mufaddal Khumri helped architect Rfm in the most ruby-like way possible. He also contributed the outstanding error handling code and a comprehensive hierarchy of error classes.
 - Atsushi Matsuo was an early Rfm tester, and provided outstanding feedback, critical code fixes, and a lot of web exposure.
 - Jesse Antunes helped ensure that Rfm is stable and functional.
+- Larry Sprock added ssl support and switched the xml parser to a much faster Nokogiri.
 
 Rdoc location: http://rdoc.info/projects/lardawge/rfm
 
