@@ -1,6 +1,6 @@
 require 'net/https'
 require 'cgi'
-require 'hpricot'
+require 'nokogiri'
 
 # This module includes classes that represent base FileMaker concepts like servers,
 # layouts, and scripts. These classes allow you to communicate with FileMaker Server,

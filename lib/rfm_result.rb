@@ -71,7 +71,7 @@ module Rfm::Result
       @total_count = nil
       @foundset_count = nil
       
-      doc = Hpricot.XML(fmresultset)
+      doc = Nokogiri.XML(fmresultset)
       
       # check for errors
       error = doc.search('error').attr('code').to_i
@@ -91,7 +91,7 @@ module Rfm::Result
       
       # process field metadata
       doc.search('field-definition').each do |field|
-        name = field.attributes['name']
+        name = field['name']
         @fields[name] = Field.new(self, field)
       end
       @fields.freeze
