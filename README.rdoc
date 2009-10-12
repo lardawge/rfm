@@ -1,5 +1,9 @@
 = Rfm
 
+This version of rfm is a segnificant upgrade to rfm in a few ways. First and most important (to me anyway) is it allows for the use of secure connections and certificate files.
+Rfm 1.0.0 is broken in that way and does not allow for this. Second it has a few bug fixes that were never pushed to rfm 1.0.0. Last but not least is that the xml parser is
+switched to nokogiri which is a huge speed improvement over REXML which is used in rfm 1.0.0. As of now this is also the only rfm gem in active development.
+
 Rfm was primarily designed by Six Fried Rice co-founder Geoff Coffey.
 
 Other lead contributors:
