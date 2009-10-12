@@ -15,7 +15,8 @@ Rdoc location: http://rdoc.info/projects/lardawge/rfm
 
 Run the following if you haven't already:
 
-  gem sources -a http://gems.github.com
+  gem install gemcutter
+  gem tumble
 	
 Followed by:
 
