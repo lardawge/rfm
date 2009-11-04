@@ -4,17 +4,17 @@ require 'rake'
 begin
   require 'jeweler'
   Jeweler::Tasks.new do |gem|
-    gem.name = "rfm"
+    gem.name = "lardawge-rfm"
     gem.summary = "FileMaker to Ruby adapter"
     gem.description = "Rfm brings your FileMaker data to Ruby with elegance and speed. Now your Ruby scripts and Rails applications can talk directly to your FileMaker server with a syntax that just feels right."
     gem.email = "http://groups.google.com/group/rfmcommunity"
     gem.homepage = "http://sixfriedrice.com/wp/products/rfm/"
     gem.authors = ["Geoff Coffey", "Mufaddal Khumri", "Atsushi Matsuo", "Larry Sprock"]
     gem.files = FileList['lib/*.rb']
-    gem.add_dependency('nokogiri', '>= 1.3.3')
+    gem.add_dependency('nokogiri', '1.3.3')
     gem.rdoc_options = [ "--line-numbers", "--main", "README.rdoc" ]
   end
-
+  Jeweler::GemcutterTasks.new
 rescue LoadError
   puts "Jeweler (or a dependency) not available. Install it with: sudo gem install jeweler"
 end

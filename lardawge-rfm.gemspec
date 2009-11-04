@@ -4,12 +4,12 @@
 # -*- encoding: utf-8 -*-
 
 Gem::Specification.new do |s|
-  s.name = %q{rfm}
-  s.version = "1.3.0"
+  s.name = %q{lardawge-rfm}
+  s.version = "1.3.1"
 
   s.required_rubygems_version = Gem::Requirement.new(">= 0") if s.respond_to? :required_rubygems_version=
   s.authors = ["Geoff Coffey", "Mufaddal Khumri", "Atsushi Matsuo", "Larry Sprock"]
-  s.date = %q{2009-08-11}
+  s.date = %q{2009-11-04}
   s.description = %q{Rfm brings your FileMaker data to Ruby with elegance and speed. Now your Ruby scripts and Rails applications can talk directly to your FileMaker server with a syntax that just feels right.}
   s.email = %q{http://groups.google.com/group/rfmcommunity}
   s.extra_rdoc_files = [
@@ -27,7 +27,7 @@ Gem::Specification.new do |s|
   s.homepage = %q{http://sixfriedrice.com/wp/products/rfm/}
   s.rdoc_options = ["--line-numbers", "--main", "README.rdoc"]
   s.require_paths = ["lib"]
-  s.rubygems_version = %q{1.3.4}
+  s.rubygems_version = %q{1.3.5}
   s.summary = %q{FileMaker to Ruby adapter}
   s.test_files = [
     "test/rfm_test_errors.rb",
@@ -39,11 +39,11 @@ Gem::Specification.new do |s|
     s.specification_version = 3
 
     if Gem::Version.new(Gem::RubyGemsVersion) >= Gem::Version.new('1.2.0') then
-      s.add_runtime_dependency(%q<nokogiri>, [">= 1.3.3"])
+      s.add_runtime_dependency(%q<nokogiri>, ["= 1.3.3"])
     else
-      s.add_dependency(%q<nokogiri>, [">= 1.3.3"])
+      s.add_dependency(%q<nokogiri>, ["= 1.3.3"])
     end
   else
-    s.add_dependency(%q<nokogiri>, [">= 1.3.3"])
+    s.add_dependency(%q<nokogiri>, ["= 1.3.3"])
   end
 end

@@ -525,7 +525,7 @@ module Rfm
   #
   # * *sort_field* tells FileMaker to sort the records by the specified field
   # 
-  # * *sort_order* can be +desc+ (descending) or +asc+ (ascending) and determines the order
+  # * *sort_order* can be +descend+ or +ascend+ and determines the order
   #   of the sort when +sort_field+ is specified
   #
   # * *post_script* tells FileMaker to perform a script after carrying out the action; you 
