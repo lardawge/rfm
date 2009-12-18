@@ -9,7 +9,7 @@ Gem::Specification.new do |s|
 
   s.required_rubygems_version = Gem::Requirement.new(">= 0") if s.respond_to? :required_rubygems_version=
   s.authors = ["Geoff Coffey", "Mufaddal Khumri", "Atsushi Matsuo", "Larry Sprock"]
-  s.date = %q{2009-11-04}
+  s.date = %q{2009-12-18}
   s.description = %q{Rfm brings your FileMaker data to Ruby with elegance and speed. Now your Ruby scripts and Rails applications can talk directly to your FileMaker server with a syntax that just feels right.}
   s.email = %q{http://groups.google.com/group/rfmcommunity}
   s.extra_rdoc_files = [
@@ -18,11 +18,15 @@ Gem::Specification.new do |s|
   ]
   s.files = [
     "lib/rfm.rb",
-     "lib/rfm_command.rb",
-     "lib/rfm_error.rb",
-     "lib/rfm_factory.rb",
-     "lib/rfm_result.rb",
-     "lib/rfm_util.rb"
+     "lib/rfm/commands/database.rb",
+     "lib/rfm/commands/field_control.rb",
+     "lib/rfm/commands/layout.rb",
+     "lib/rfm/commands/script.rb",
+     "lib/rfm/commands/server.rb",
+     "lib/rfm/error.rb",
+     "lib/rfm/factory.rb",
+     "lib/rfm/result.rb",
+     "lib/rfm/utility.rb"
   ]
   s.homepage = %q{http://sixfriedrice.com/wp/products/rfm/}
   s.rdoc_options = ["--line-numbers", "--main", "README.rdoc"]
@@ -30,8 +34,7 @@ Gem::Specification.new do |s|
   s.rubygems_version = %q{1.3.5}
   s.summary = %q{FileMaker to Ruby adapter}
   s.test_files = [
-    "test/rfm_test_errors.rb",
-     "test/rfm_tester.rb"
+    "test/rfm_errors_test.rb"
   ]
 
   if s.respond_to? :specification_version then

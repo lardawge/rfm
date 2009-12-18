@@ -1,5 +1,6 @@
 require 'test/unit'
-require '../lib/rfm'
+require 'rubygems'
+require 'rfm'
 
 # Test cases for testing the FileMakerError classes 
 #    
@@ -12,7 +13,7 @@ class TC_TestErrors < Test::Unit::TestCase
     begin
       raise Rfm::Error::FileMakerError.getError(0)
     rescue Rfm::Error::SystemError => ex
-      assert_equal(ex.message, 'SystemError occurred.')
+      assert_equal(ex.message, 'SystemError occurred. (FileMaker Error #0)')
       assert_equal(ex.code, 0)
     end
   end  

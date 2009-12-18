@@ -222,11 +222,20 @@
 #     config.frameworks -= [ :active_record ]
 # 
 # Now Rails will no longer insist on a SQL database.
- 
-$: << File.expand_path(File.dirname(__FILE__))
+path = File.expand_path(File.dirname(__FILE__))
+$:.unshift(path) unless $:.include?(path)
 
-require 'rfm_command'
-require 'rfm_util'
-require 'rfm_result'
-require 'rfm_factory'
-require 'rfm_error'
+module Rfm
+  
+  autoload :Error, "rfm/error"
+  autoload :Factory, "rfm/factory"
+  autoload :Result, "rfm/result"
+  autoload :Utility, "rfm/utility"
+  
+  autoload :Database, 'rfm/commands/database'
+  autoload :FieldControl, 'rfm/commands/field_control'
+  autoload :Layout, 'rfm/commands/layout'
+  autoload :Script, 'rfm/commands/script'
+  autoload :Server, 'rfm/commands/server'
+  
+end
