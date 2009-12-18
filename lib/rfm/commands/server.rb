@@ -108,46 +108,7 @@ module Rfm
   # * *state* is a hash of all server options used to initialize this server
   class Server
     #
-    # SSL AND CERTIFICATE VERIFICATION ARE ON BY DEFAULT
-    #     
-    # Example to turn off SSL:
-    # 
-    #   response = myServer.do_action(
-    #           :host => 'localhost',
-    #           :account_name => 'sample',
-    #           :password => '12345',
-    #           :ssl => false 
-    #           )
-    #           
-    # Example using SSL without *root_cert*:
-    #           
-    #   response = myServer.do_action(
-    #           :host => 'localhost',
-    #           :account_name => 'sample',
-    #           :password => '12345',
-    #           :root_cert => false 
-    #           )
-    #           
-    # Example using SSL with *root_cert* at file root:
-    # 
-    #   response = myServer.do_action(
-    #            :host => 'localhost',
-    #            :account_name => 'sample',
-    #            :password => '12345',
-    #            :root_cert_name => 'example.pem' 
-    #            )
-    #            
-    # Example using SSL with *root_cert* specifying *root_cert_path*:
-    # 
-    #   response = myServer.do_action(
-    #            :host => 'localhost',
-    #            :account_name => 'sample',
-    #            :password => '12345',
-    #            :root_cert_name => 'example.pem'
-    #            :root_cert_path => '/usr/cert_file/'
-    #            )
-    #
-    # To create a Server obejct, you typically need at least a host name:
+    # To create a Server object, you typically need at least a host name:
     # 
     #   myServer = Rfm::Server.new({:host => 'my.host.com'})
     #
@@ -177,7 +138,7 @@ module Rfm
     #   ignores FileMaker's 401 error (no records found) and returns an empty record set instead; if you
     #   prefer a raised error when a find produces no errors, set this option to +true+
     #
-    #SSL Options:
+    #SSL Options (SSL AND CERTIFICATE VERIFICATION ARE ON BY DEFAULT):
     #
     # * *ssl* +false+ if you want to turn SSL (HTTPS) off when connecting to connect to FileMaker (default is +true+)
     #
@@ -192,6 +153,45 @@ module Rfm
     #   from http://curl.haxx.se/ca/cacert.pem. Place the pem file in config directory.
     #
     # * *root_cert_path* path to cert file. (defaults to '/' if no path given)
+    #
+    #Configuration Examples:    
+    #
+    # Example to turn off SSL:
+    # 
+    #   myServer = Rfm::Server.new({
+    #           :host => 'localhost',
+    #           :account_name => 'sample',
+    #           :password => '12345',
+    #           :ssl => false 
+    #           })
+    #           
+    # Example using SSL without *root_cert*:
+    #           
+    #   myServer = Rfm::Server.new({
+    #           :host => 'localhost',
+    #           :account_name => 'sample',
+    #           :password => '12345',
+    #           :root_cert => false 
+    #           })
+    #           
+    # Example using SSL with *root_cert* at file root:
+    # 
+    #   myServer = Rfm::Server.new({
+    #            :host => 'localhost',
+    #            :account_name => 'sample',
+    #            :password => '12345',
+    #            :root_cert_name => 'example.pem' 
+    #            })
+    #            
+    # Example using SSL with *root_cert* specifying *root_cert_path*:
+    # 
+    #   myServer = Rfm::Server.new({
+    #            :host => 'localhost',
+    #            :account_name => 'sample',
+    #            :password => '12345',
+    #            :root_cert_name => 'example.pem'
+    #            :root_cert_path => '/usr/cert_file/'
+    #            })
     
     def initialize(options)
       @state = {
