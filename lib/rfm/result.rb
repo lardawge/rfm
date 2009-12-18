@@ -1,4 +1,3 @@
-require 'nokogiri'
 # This module includes classes that represent FileMaker data. When you communicate with FileMaker
 # using, ie, the Layout object, you typically get back ResultSet objects. These contain Records,
 # which in turn contain Fields, Portals, and arrays of data.
@@ -6,6 +5,7 @@ require 'nokogiri'
 # Author::    Geoff Coffey  (mailto:gwcoffey@gmail.com)
 # Copyright:: Copyright (c) 2007 Six Fried Rice, LLC and Mufaddal Khumri
 # License::   See MIT-LICENSE for details
+require 'nokogiri'
 require 'bigdecimal'
 require 'date'
 
@@ -75,43 +75,46 @@ module Rfm
         
         doc = Nokogiri.XML(fmresultset)
         
+        #seperate content for less searching
+        datasource  = doc.search('datasource')
+        resultset   = doc.search('resultset')
+        metadata    = doc.search('metadata')
+        
         # check for errors
-        error = doc.search('error').attr('code').to_i
+        error = doc.search('error').attribute('code').value.to_i
         if error != 0 && (error != 401 || @server.state[:raise_on_401])
           raise Rfm::Error::FileMakerError.getError(error) 
         end
         
         # ascertain date and time formats
-        datasource = doc.search('datasource')
-        @date_format = convertFormatString(datasource.attr('date-format'))
-        @time_format = convertFormatString(datasource.attr('time-format'))
-        @timestamp_format = convertFormatString(datasource.attr('timestamp-format'))
+        @date_format      = convertFormatString(datasource.attribute('date-format').value)
+        @time_format      = convertFormatString(datasource.attribute('time-format').value)
+        @timestamp_format = convertFormatString(datasource.attribute('timestamp-format').value)
         
-        # process count metadata
-        @total_count = datasource.attr('total-count').to_i
-        @foundset_count = doc.search('resultset').attr('count').to_i
+        # retrieve count
+        @foundset_count = resultset.attribute('count').value.to_i
+        @total_count    = datasource.attribute('total-count').value.to_i
         
         # process field metadata
-        doc.search('field-definition').each do |field|
-          name = field['name']
-          @fields[name] = Field.new(self, field)
+        metadata.search('field-definition').each do |field|
+          @fields[field['name']] = Field.new(self, field)
         end
         @fields.freeze
         
         # process relatedset metadata
-        doc.search('relatedset-definition').each do |relatedset|
-          table = relatedset.attr('table')
+        metadata.search('relatedset-definition').each do |relatedset|
+          table = relatedset.attribute('table').value
           fields = {}
           relatedset.search('field-definition').each do |field|
-            name = field.attr('name').sub(Regexp.new(table + '::'), '')
+            name = field.attribute('name').value.sub(Regexp.new(table + '::'), '')
             fields[name] = Field.new(self, field)
           end
           @portals[table] = fields
         end
         @portals.freeze
         
-        # build rows
-        doc.search('record').each do |record|
+        # build record rows
+        resultset.search('record').each do |record|
           self << Record.new(record, self, @fields, @layout)
         end
       end  
@@ -120,9 +123,9 @@ module Rfm
       
       private
       
-      def convertFormatString(fm_format)
-        fm_format.gsub('MM', '%m').gsub('dd', '%d').gsub('yyyy', '%Y').gsub('HH', '%H').gsub('mm', '%M').gsub('ss', '%S')
-      end
+        def convertFormatString(fm_format)
+          fm_format.gsub('MM', '%m').gsub('dd', '%d').gsub('yyyy', '%Y').gsub('HH', '%H').gsub('mm', '%M').gsub('ss', '%S')
+        end
       
     end
     
@@ -236,6 +239,7 @@ module Rfm
         @layout = layout
         
         @loaded = false
+        related_sets = row_element.search('relatedset')
         
         row_element.search('field').each do |field| 
           field_name = field['name']
@@ -253,15 +257,17 @@ module Rfm
           end
         end
         
-        @portals = Rfm::Utility::CaseInsensitiveHash.new
-        row_element.search('relatedset').each do |relatedset|
-          table = relatedset['table']
-          records = []
-          relatedset.search('record').each do |record|
-            records << Record.new(record, @resultset, @resultset.portals[table], @layout, table)
+        unless related_sets.empty?
+          @portals = Rfm::Utility::CaseInsensitiveHash.new
+          related_sets.each do |relatedset|
+            table = relatedset['table']
+            records = []
+            relatedset.search('record').each do |record|
+              records << Record.new(record, @resultset, @resultset.portals[table], @layout, table)
+            end
+            @portals[table] = records
           end
-          @portals[table] = records
-        end      
+        end
         @loaded = true
       end
       
@@ -307,7 +313,7 @@ module Rfm
       # When you do, the change is noted, but *the data is not updated in FileMaker*. You must call
       # Record::save or Record::save_if_not_modified to actually save the data.
       def []=(pname, value)
-        return super if !@loaded # this just keeps us from getting mods during initialization
+        return super unless @loaded # keeps us from getting mods during initialization
         name = pname
         if self[name] != nil
           @mods[name] = val

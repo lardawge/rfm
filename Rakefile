@@ -11,7 +11,7 @@ begin
     gem.homepage = "http://sixfriedrice.com/wp/products/rfm/"
     gem.authors = ["Geoff Coffey", "Mufaddal Khumri", "Atsushi Matsuo", "Larry Sprock"]
     gem.files = FileList['lib/*.rb', 'lib/rfm/*.rb', 'lib/rfm/commands/*.rb']
-    gem.add_dependency('nokogiri', '1.3.3')
+    gem.add_dependency('nokogiri')
     gem.rdoc_options = [ "--line-numbers", "--main", "README.rdoc" ]
   end
   Jeweler::GemcutterTasks.new

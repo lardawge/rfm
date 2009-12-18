@@ -142,7 +142,7 @@ module Rfm
     #
     # * *ssl* +false+ if you want to turn SSL (HTTPS) off when connecting to connect to FileMaker (default is +true+)
     #
-    # If you are using SSL on and want to verify the certificate use the following options:
+    # If you are using SSL and want to verify the certificate use the following options:
     #
     # * *root_cert* +false+ if you do not want to verify your SSL session (default is +true+). 
     #   You will want to turn this off if you are using a self signed certificate and do not have a certificate authority cert file.
