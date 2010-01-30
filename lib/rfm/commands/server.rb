@@ -15,7 +15,7 @@ module Rfm
   #
   # Typically, you access a Database object from the Server like this:
   #
-  #   myDatabase = myServer["Customers"]
+  #   my_db = my_server["Customers"]
   # 
   # This code gets the Database object representing the Customers object.
   # 
@@ -27,16 +27,14 @@ module Rfm
   #
   # The Server object has a +db+ attribute that provides alternate access to Database objects. It acts
   # like a hash of Database objects, one for each accessible database on the server. So, for example, you
-  # can do this if you want to print out a list of all databses on the server:
+  # can do this if you want to print out a list of all databases on the server:
   # 
-  #   myServer.db.each {|database|
-  #     puts database.name
-  #   }
+  #   my_server.db.each { |database| puts database.name }
   # 
   # The Server::db attribute is actually a DbFactory object, although it subclasses hash, so it should work
   # in all the ways you expect. Note, though, that it is completely empty until the first time you attempt 
   # to access its elements. At that (lazy) point, it hits FileMaker, loads in the list of databases, and
-  # constructs a Database object for each one. In other words, it incurrs no overhead until you use it.
+  # constructs a Database object for each one. In other words, it incurs no overhead until you use it.
   #
   # =Attributes
   # 
@@ -52,16 +50,16 @@ module Rfm
   # object from a server, its account name and password are set to the account name and password you 
   # used when initializing the Server object. You can override this of course:
   #
-  #   myDatabase = myServer["Customers"]
-  #   myDatabase.account_name = "foo"
-  #   myDatabase.password = "bar"
+  #   my_db = my_server["Customers"]
+  #   my_db.account_name = "foo"
+  #   my_db.password = "bar"
   #
   # =Accessing Layouts
   #
   # All interaction with FileMaker happens through a Layout object. You can get a Layout object
   # from the Database object like this:
   #
-  #   myLayout = myDatabase["Details"]
+  #   my_layout = my_db["Details"]
   #
   # This code gets the Layout object representing the layout called Details in the database.
   #
@@ -75,9 +73,7 @@ module Rfm
   # like a hash of Layout objects, one for each accessible layout in the database. So, for example, you
   # can do this if you want to print out a list of all layouts:
   # 
-  #   myDatabase.layout.each {|layout|
-  #     puts layout.name
-  #   }
+  #   my_db.layout.each { |layout| puts layout.name }
   # 
   # The Database::layout attribute is actually a LayoutFactory object, although it subclasses hash, so it
   # should work in all the ways you expect. Note, though, that it is completely empty until the first time
@@ -88,9 +84,7 @@ module Rfm
   #
   # If for some reason you need to enumerate the scripts in a database, you can do so:
   #  
-  #   myDatabase.script.each {|script|
-  #     puts script.name
-  #   }
+  #   my_db.script.each { |script| puts script.name }
   # 
   # The Database::script attribute is actually a ScriptFactory object, although it subclasses hash, so it
   # should work in all the ways you expect. Note, though, that it is completely empty until the first time
@@ -110,7 +104,7 @@ module Rfm
     #
     # To create a Server object, you typically need at least a host name:
     # 
-    #   myServer = Rfm::Server.new({:host => 'my.host.com'})
+    #   my_server = Rfm::Server.new(:host => 'my.host.com')
     #
     # Several other options are supported:
     #
@@ -158,40 +152,40 @@ module Rfm
     #
     # Example to turn off SSL:
     # 
-    #   myServer = Rfm::Server.new({
+    #   my_server = Rfm::Server.new(
     #           :host => 'localhost',
     #           :account_name => 'sample',
     #           :password => '12345',
     #           :ssl => false 
-    #           })
+    #           )
     #           
     # Example using SSL without *root_cert*:
     #           
-    #   myServer = Rfm::Server.new({
+    #   my_server = Rfm::Server.new(
     #           :host => 'localhost',
     #           :account_name => 'sample',
     #           :password => '12345',
     #           :root_cert => false 
-    #           })
+    #           )
     #           
     # Example using SSL with *root_cert* at file root:
     # 
-    #   myServer = Rfm::Server.new({
+    #   my_server = Rfm::Server.new(
     #            :host => 'localhost',
     #            :account_name => 'sample',
     #            :password => '12345',
     #            :root_cert_name => 'example.pem' 
-    #            })
+    #            )
     #            
     # Example using SSL with *root_cert* specifying *root_cert_path*:
     # 
-    #   myServer = Rfm::Server.new({
+    #   my_server = Rfm::Server.new(
     #            :host => 'localhost',
     #            :account_name => 'sample',
     #            :password => '12345',
     #            :root_cert_name => 'example.pem'
     #            :root_cert_path => '/usr/cert_file/'
-    #            })
+    #            )
     
     def initialize(options)
       @state = {
@@ -212,8 +206,8 @@ module Rfm
       @state.freeze
     
       @host_name = @state[:host]
-      @scheme = @state[:ssl] ? "https" : "http"
-      @port = @state[:ssl] && options[:port].nil? ? 443 : @state[:port]
+      @scheme    = @state[:ssl] ? "https" : "http"
+      @port      = @state[:ssl] && options[:port].nil? ? 443 : @state[:port]
     
       @db = Rfm::Factory::DbFactory.new(self)
     end
@@ -278,8 +272,8 @@ module Rfm
       def http_fetch(host_name, port, path, account_name, password, post_data, limit=10)
         raise Rfm::Error::CommunicationError.new("While trying to reach the Web Publishing Engine, RFM was redirected too many times.") if limit == 0
     
-        if @state[:log_actions] == true
-          qs = post_data.collect{|key,val| "#{CGI::escape(key.to_s)}=#{CGI::escape(val.to_s)}"}.join("&")
+        if @state[:log_actions]
+          qs = post_data.collect { |key,value| "#{CGI::escape(key.to_s)}=#{CGI::escape(value.to_s)}" }.join("&")
           warn "#{@scheme}://#{@host_name}:#{@port}#{path}?#{qs}"
         end
     
@@ -301,7 +295,7 @@ module Rfm
     
         response = response.start { |http| http.request(request) }
     
-        if @state[:log_responses] == true
+        if @state[:log_responses]
           response.to_hash.each { |key, value| warn "#{key}: #{value}" }
           warn response.body
         end
