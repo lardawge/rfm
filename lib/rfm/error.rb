@@ -3,7 +3,7 @@ require "set"
 # These classes wrap the filemaker error codes. FileMakerError is the base class of this hierarchy.
 # 
 # One could get a FileMakerError by doing:
-#   err = Rfm::Error::FileMakerError.getError(102)
+#   err = Rfm::Error::FileMakerError.get_error(102)
 # 
 # The above code would return a FieldMissingError instance. Your could use this instance to raise that appropriate
 # exception:
@@ -38,57 +38,63 @@ module Rfm
       
       # This method instantiates and returns the appropriate FileMakerError object depending on the error code passed to it. It
       # also accepts an optional message.
-      def self.getError(code, message=nil)
-        err = error_message(code)
-        err.code = code
-        return err
+      def self.get_error(code, message=nil)
+        message = message.nil? ? "(FileMaker Error ##{code})" : "#{message} (FileMaker Error ##{code})"
+        error = error_message(code, message)
+        error.code = code
+        return error
+      end
+      
+      # TODO Remove in next major release
+      def self.getError(code, message=nil) #:nodoc:
+        warn "The method get_error is deprecated and will be replaced by get_error."
+        get_error(code, message)
       end
       
       private
          
-          def self.error_message(code)
-            error_text = " (FileMaker Error ##{code})"
+          def self.error_message(code, error_message)
             case code
             when 0..99
-              SystemError.new('SystemError occurred.' + error_text)
+              SystemError.new(error_message)
             when 100..199
-              if 101; RecordMissingError.new('RecordMissingError occurred' + error_text)
-              elsif 102; FieldMissingError.new('FieldMissingError occurred.' + error_text)
-              elsif 104; ScriptMissingError.new('ScriptMissingError occurred.' + error_text)
-              elsif 105; LayoutMissingError.new('LayoutMissingError occurred.' + error_text)
-              elsif 106; TableMissingError.new('TableMissingError occurred.' + error_text)
-              else; MissingError.new('MissingError occurred.' + error_text); end
+              if 101; RecordMissingError.new(error_message)
+              elsif 102; FieldMissingError.new(error_message)
+              elsif 104; ScriptMissingError.new(error_message)
+              elsif 105; LayoutMissingError.new(error_message)
+              elsif 106; TableMissingError.new(error_message)
+              else; MissingError.new(error_message); end
             when 203..299
-              if 200; RecordAccessDeniedError.new('RecordAccessDeniedError occurred.' + error_text)
-              elsif 201; FieldCannotBeModifiedError.new('FieldCannotBeModifiedError occurred.' + error_text)
-              elsif 202; FieldAccessIsDeniedError.new('FieldAccessIsDeniedError occurred.' + error_text)
-              else; SecurityError.new('SecurityError occurred.' + error_text); end
+              if 200; RecordAccessDeniedError.new(error_message)
+              elsif 201; FieldCannotBeModifiedError.new(error_message)
+              elsif 202; FieldAccessIsDeniedError.new(error_message)
+              else; SecurityError.new(error_message); end
             when 300..399
-              if 301; RecordInUseError.new('RecordInUseError occurred.' + error_text)
-              elsif 302; TableInUseError.new('TableInUseError occurred.' + error_text)
-              elsif 306; RecordModIdDoesNotMatchError.new('RecordModIdDoesNotMatchError occurred.' + error_text)
-              else; ConcurrencyError.new('ConcurrencyError occurred.' + error_text); end
+              if 301; RecordInUseError.new(error_message)
+              elsif 302; TableInUseError.new(error_message)
+              elsif 306; RecordModIdDoesNotMatchError.new(error_message)
+              else; ConcurrencyError.new(error_message); end
             when 400..499
-             if 401; NoRecordsFoundError.new('NoRecordsFoundError occurred.' + error_text)
-             else; GeneralError.new('GeneralError occurred.' + error_text); end
+             if 401; NoRecordsFoundError.new(error_message)
+             else; GeneralError.new(error_message); end
             when 500..599
-              if 500; DateValidationError.new('DateValidationError occurred.' + error_text)
-              elsif 501; TimeValidationError.new('TimeValidationError occurred.' + error_text)
-              elsif 502; NumberValidationError.new('NumberValidationError occurred.' + error_text)
-              elsif 503; RangeValidationError.new('RangeValidationError occurred.'+ error_text)
-              elsif 504; UniqueValidationError.new('UniqueValidationError occurred.' + error_text)
-              elsif 505; ExistingValidationError.new('ExistingValidationError occurred.' + error_text)
-              elsif 506; ValueListValidationError.new('ValueListValidationError occurred.' + error_text)
-              elsif 507; ValidationCalculationError.new('ValidationCalculationError occurred.' + error_text)
-              elsif 508; InvalidFindModeValueError.new('InvalidFindModeValueError occurred.' + error_text)
-              elsif 511; MaximumCharactersValidationError.new('MaximumCharactersValidationError occurred.' + error_text)
-              else; ValidationError.new('ValidationError occurred.' + error_text)
+              if 500; DateValidationError.new(error_message)
+              elsif 501; TimeValidationError.new(error_message)
+              elsif 502; NumberValidationError.new(error_message)
+              elsif 503; RangeValidationError.new(error_message)
+              elsif 504; UniqueValidationError.new(error_message)
+              elsif 505; ExistingValidationError.new(error_message)
+              elsif 506; ValueListValidationError.new(error_message)
+              elsif 507; ValidationCalculationError.new(error_message)
+              elsif 508; InvalidFindModeValueError.new(error_message)
+              elsif 511; MaximumCharactersValidationError.new(error_message)
+              else; ValidationError.new(error_message)
               end
             when 800..899
-              if 802; UnableToOpenFileError.new('UnableToOpenFileError occurred.' + error_text)
-              else; FileError.new('FileError occurred.' + error_text); end
+              if 802; UnableToOpenFileError.new(error_message)
+              else; FileError.new(error_message); end
             else
-              UnknownError.new('UnknownError occured' + error_text)
+              UnknownError.new(error_message)
             end
           end
     end
