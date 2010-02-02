@@ -36,128 +36,61 @@ module Rfm
     class FileMakerError < RfmError
       attr_accessor :code
       
-      # Default filemaker error message map
-      @default_messages = {}
-      class << self; attr_reader :default_messages; end
-      
-      
       # This method instantiates and returns the appropriate FileMakerError object depending on the error code passed to it. It
       # also accepts an optional message.
-      def self.getError(code, message = nil)
-        if @default_messages == nil or @default_messages.size == 0
-          (0..99).each{|i| @default_messages[i] = 'SystemError occurred.'}
-          (100..199).each{|i| @default_messages[i] = 'MissingError occurred.'}
-          @default_messages[102] = 'FieldMissingError occurred.'
-          @default_messages[104] = 'ScriptMissingError occurred.'
-          @default_messages[105] = 'LayoutMissingError occurred.'
-          @default_messages[106] = 'TableMissingError occurred.'
-          (200..299).each{|i| @default_messages[i] = 'SecurityError occurred.'}
-          @default_messages[200] = 'RecordAccessDeniedError occurred.'
-          @default_messages[201] = 'FieldCannotBeModifiedError occurred.'
-          @default_messages[202] = 'FieldAccessIsDeniedError occurred.'
-          (300..399).each{|i| @default_messages[i] = 'ConcurrencyError occurred.'}
-          @default_messages[301] = 'RecordInUseError occurred.'
-          @default_messages[302] = 'TableInUseError occurred.'
-          @default_messages[306] = 'RecordModIdDoesNotMatchError occurred.'
-          (400..499).each{|i| @default_messages[i] = 'GeneralError occurred.'}
-          @default_messages[401] = 'NoRecordsFoundError occurred.'
-          (500..599).each{|i| @default_messages[i] = 'ValidationError occurred.'}
-          @default_messages[500] = 'DateValidationError occurred.'
-          @default_messages[501] = 'TimeValidationError occurred.'
-          @default_messages[502] = 'NumberValidationError occurred.'
-          @default_messages[503] = 'RangeValidationError occurred.'
-          @default_messages[504] = 'UniqueValidationError occurred.'
-          @default_messages[505] = 'ExistingValidationError occurred.'
-          @default_messages[506] = 'ValueListValidationError occurred.'
-          @default_messages[507] = 'ValidationCalculationError occurred.'
-          @default_messages[508] = 'InvalidFindModeValueError occurred.'
-          @default_messages[511] = 'MaximumCharactersValidationError occurred.'
-          (800..899).each{|i| @default_messages[i] = 'FileError occurred.'}
-          @default_messages[802] = 'UnableToOpenFileError occurred.'
-        end 
-        
-        message = @default_messages[code] if message == nil || message.strip == ''
-        message += " (FileMaker Error ##{code})"
-        
-        if 0 <= code and code <= 99
-          err = SystemError.new(message)
-        elsif 100 <= code and code <= 199
-          if code == 101
-            err = RecordMissingError.new(message)
-          elsif code == 102
-            err = FieldMissingError.new(message)
-          elsif code == 104
-            err = ScriptMissingError.new(message)
-          elsif code == 105
-            err = LayoutMissingError.new(message)
-          elsif code == 106
-            err = TableMissingError.new(message)
-          else
-            err = MissingError.new(message)
-          end
-        elsif 200 <= code and code <= 299
-          if code == 200
-            err = RecordAccessDeniedError.new(message)
-          elsif code == 201
-            err = FieldCannotBeModifiedError.new(message)
-          elsif code == 202
-            err = FieldAccessIsDeniedError.new(message)
-          else
-            err = SecurityError.new(message)
-          end
-        elsif 300 <= code and code <= 399
-          if code == 301
-            err = RecordInUseError.new(message)
-          elsif code == 302
-            err = TableInUseError.new(message)
-          elsif code == 306
-            err = RecordModIdDoesNotMatchError.new(message)
-          else
-            err = ConcurrencyError.new(message)
-          end
-        elsif 400 <= code and code <= 499
-          if code == 401
-            err = NoRecordsFoundError.new(message)
-          else
-            err = GeneralError.new(message)
-          end
-        elsif 500 <= code and code <= 599
-          if code == 500
-            err = DateValidationError.new(message)
-          elsif code == 501
-            err = TimeValidationError.new(message)
-          elsif code == 502
-            err = NumberValidationError.new(message)
-          elsif code == 503
-            err = RangeValidationError.new(message)
-          elsif code == 504
-            err = UniqueValidationError.new(message)
-          elsif code == 505
-            err = ExistingValidationError.new(message)
-          elsif code == 506
-            err = ValueListValidationError.new(message)
-          elsif code == 507
-            err = ValidationCalculationError.new(message)
-          elsif code == 508
-            err = InvalidFindModeValueError.new(message)
-          elsif code == 511
-            err = MaximumCharactersValidationError.new(message)
-          else
-            err = ValidationError.new(message)
-          end
-        elsif 800 <= code and code <= 899
-          if code == 802
-            err = UnableToOpenFileError.new(message)
-          else
-            err = FileError.new(message)
-          end
-        else 
-          # called for code == -1 or any other code not handled above.
-          err = UnknownError.new(message)
-        end
+      def self.getError(code, message=nil)
+        err = error_message(code)
         err.code = code
         return err
-      end    
+      end
+      
+      private
+         
+          def self.error_message(code)
+            error_text = " (FileMaker Error ##{code})"
+            case code
+            when 0..99
+              SystemError.new('SystemError occurred.' + error_text)
+            when 100..199
+              if 101; RecordMissingError.new('RecordMissingError occurred' + error_text)
+              elsif 102; FieldMissingError.new('FieldMissingError occurred.' + error_text)
+              elsif 104; ScriptMissingError.new('ScriptMissingError occurred.' + error_text)
+              elsif 105; LayoutMissingError.new('LayoutMissingError occurred.' + error_text)
+              elsif 106; TableMissingError.new('TableMissingError occurred.' + error_text)
+              else; MissingError.new('MissingError occurred.' + error_text); end
+            when 203..299
+              if 200; RecordAccessDeniedError.new('RecordAccessDeniedError occurred.' + error_text)
+              elsif 201; FieldCannotBeModifiedError.new('FieldCannotBeModifiedError occurred.' + error_text)
+              elsif 202; FieldAccessIsDeniedError.new('FieldAccessIsDeniedError occurred.' + error_text)
+              else; SecurityError.new('SecurityError occurred.' + error_text); end
+            when 300..399
+              if 301; RecordInUseError.new('RecordInUseError occurred.' + error_text)
+              elsif 302; TableInUseError.new('TableInUseError occurred.' + error_text)
+              elsif 306; RecordModIdDoesNotMatchError.new('RecordModIdDoesNotMatchError occurred.' + error_text)
+              else; ConcurrencyError.new('ConcurrencyError occurred.' + error_text); end
+            when 400..499
+             if 401; NoRecordsFoundError.new('NoRecordsFoundError occurred.' + error_text)
+             else; GeneralError.new('GeneralError occurred.' + error_text); end
+            when 500..599
+              if 500; DateValidationError.new('DateValidationError occurred.' + error_text)
+              elsif 501; TimeValidationError.new('TimeValidationError occurred.' + error_text)
+              elsif 502; NumberValidationError.new('NumberValidationError occurred.' + error_text)
+              elsif 503; RangeValidationError.new('RangeValidationError occurred.'+ error_text)
+              elsif 504; UniqueValidationError.new('UniqueValidationError occurred.' + error_text)
+              elsif 505; ExistingValidationError.new('ExistingValidationError occurred.' + error_text)
+              elsif 506; ValueListValidationError.new('ValueListValidationError occurred.' + error_text)
+              elsif 507; ValidationCalculationError.new('ValidationCalculationError occurred.' + error_text)
+              elsif 508; InvalidFindModeValueError.new('InvalidFindModeValueError occurred.' + error_text)
+              elsif 511; MaximumCharactersValidationError.new('MaximumCharactersValidationError occurred.' + error_text)
+              else; ValidationError.new('ValidationError occurred.' + error_text)
+              end
+            when 800..899
+              if 802; UnableToOpenFileError.new('UnableToOpenFileError occurred.' + error_text)
+              else; FileError.new('FileError occurred.' + error_text); end
+            else
+              UnknownError.new('UnknownError occured' + error_text)
+            end
+          end
     end
     
     class UnknownError < FileMakerError  
