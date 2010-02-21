@@ -1,9 +1,10 @@
-require "set"
-
 # These classes wrap the filemaker error codes. FileMakerError is the base class of this hierarchy.
 # 
 # One could get a FileMakerError by doing:
 #   err = Rfm::Error::FileMakerError.get_error(102)
+#
+# It also takes an optional argument to giva a mor discriptive error message:
+#   err = Rfm::Error::FileMakerError.get_error(102, 'add description with more detail here')
 # 
 # The above code would return a FieldMissingError instance. Your could use this instance to raise that appropriate
 # exception:
@@ -38,63 +39,63 @@ module Rfm
       
       # This method instantiates and returns the appropriate FileMakerError object depending on the error code passed to it. It
       # also accepts an optional message.
-      def self.get_error(code, message=nil)
-        message = message.nil? ? "(FileMaker Error ##{code})" : "#{message} (FileMaker Error ##{code})"
-        error = error_message(code, message)
+      def self.get_error(code, error_message=nil)
+        error = error_message(code, error_message)
         error.code = code
         return error
       end
       
       # TODO Remove in next major release
       def self.getError(code, message=nil) #:nodoc:
-        warn "The method get_error is deprecated and will be replaced by get_error."
+        warn "The #getError is deprecated and will be replaced by #get_error."
         get_error(code, message)
       end
       
       private
          
-          def self.error_message(code, error_message)
+          def self.error_message(code, custom_message)
+            message = custom_message.nil? ? "occurred: (FileMaker Error ##{code})" : "occured: #{custom_message} (FileMaker Error ##{code})"
             case code
             when 0..99
-              SystemError.new(error_message)
+              SystemError.new("SystemError #{message}")
             when 100..199
-              if 101; RecordMissingError.new(error_message)
-              elsif 102; FieldMissingError.new(error_message)
-              elsif 104; ScriptMissingError.new(error_message)
-              elsif 105; LayoutMissingError.new(error_message)
-              elsif 106; TableMissingError.new(error_message)
-              else; MissingError.new(error_message); end
+              if code == 101; RecordMissingError.new("RecordMissingError #{message}")
+              elsif code == 102; FieldMissingError.new("FieldMissingError #{message}")
+              elsif code == 104; ScriptMissingError.new("ScriptMissingError #{message}")
+              elsif code == 105; LayoutMissingError.new("LayoutMissingError #{message}")
+              elsif code == 106; TableMissingError.new("TableMissingError #{message}")
+              else; MissingError.new("MissingError #{message}"); end
             when 203..299
-              if 200; RecordAccessDeniedError.new(error_message)
-              elsif 201; FieldCannotBeModifiedError.new(error_message)
-              elsif 202; FieldAccessIsDeniedError.new(error_message)
-              else; SecurityError.new(error_message); end
+              if code == 200; RecordAccessDeniedError.new("RecordAccessDeniedError #{message}")
+              elsif code == 201; FieldCannotBeModifiedError.new("FieldCannotBeModifiedError #{message}")
+              elsif code == 202; FieldAccessIsDeniedError.new("FieldAccessIsDeniedError #{message}")
+              else; SecurityError.new("SecurityError #{message}"); end
             when 300..399
-              if 301; RecordInUseError.new(error_message)
-              elsif 302; TableInUseError.new(error_message)
-              elsif 306; RecordModIdDoesNotMatchError.new(error_message)
-              else; ConcurrencyError.new(error_message); end
+              if code == 301; RecordInUseError.new("RecordInUseError #{message}")
+              elsif code == 302; TableInUseError.new("TableInUseError #{message}")
+              elsif code == 306; RecordModIdDoesNotMatchError.new("RecordModIdDoesNotMatchError #{message}")
+              else; ConcurrencyError.new("ConcurrencyError #{message}"); end
             when 400..499
-             if 401; NoRecordsFoundError.new(error_message)
-             else; GeneralError.new(error_message); end
+             if code == 401; NoRecordsFoundError.new("NoRecordsFoundError #{message}")
+             else; GeneralError.new("GeneralError #{message}"); end
             when 500..599
-              if 500; DateValidationError.new(error_message)
-              elsif 501; TimeValidationError.new(error_message)
-              elsif 502; NumberValidationError.new(error_message)
-              elsif 503; RangeValidationError.new(error_message)
-              elsif 504; UniqueValidationError.new(error_message)
-              elsif 505; ExistingValidationError.new(error_message)
-              elsif 506; ValueListValidationError.new(error_message)
-              elsif 507; ValidationCalculationError.new(error_message)
-              elsif 508; InvalidFindModeValueError.new(error_message)
-              elsif 511; MaximumCharactersValidationError.new(error_message)
-              else; ValidationError.new(error_message)
+              if code == 500; DateValidationError.new("DateValidationError #{message}")
+              elsif code == 501; TimeValidationError.new("TimeValidationError #{message}")
+              elsif code == 502; NumberValidationError.new("NumberValidationError #{message}")
+              elsif code == 503; RangeValidationError.new("RangeValidationError #{message}")
+              elsif code == 504; UniqueValidationError.new("UniqueValidationError #{message}")
+              elsif code == 505; ExistingValidationError.new("ExistingValidationError #{message}")
+              elsif code == 506; ValueListValidationError.new("ValueListValidationError #{message}")
+              elsif code == 507; ValidationCalculationError.new("ValidationCalculationError #{message}")
+              elsif code == 508; InvalidFindModeValueError.new("InvalidFindModeValueError #{message}")
+              elsif code == 511; MaximumCharactersValidationError.new("MaximumCharactersValidationError #{message}")
+              else; ValidationError.new("ValidationError #{message}")
               end
             when 800..899
-              if 802; UnableToOpenFileError.new(error_message)
-              else; FileError.new(error_message); end
+              if code == 802; UnableToOpenFileError.new("UnableToOpenFileError #{message}")
+              else; FileError.new("FileError #{message}"); end
             else
-              UnknownError.new(error_message)
+              UnknownError.new("UnknownError #{message}")
             end
           end
     end
