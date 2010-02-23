@@ -1,3 +1,4 @@
+require 'nokogiri'
 # RFM provides easy access to FileMaker Pro data. With it, Ruby scripts can
 # perform finds, read records and fields, update data, and perform scripts using
 # a simple ruby-like syntax.
