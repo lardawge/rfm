@@ -19,7 +19,7 @@ module Rfm
       end
       
       def all
-        if !@loaded
+        unless @loaded
           Rfm::Result::ResultSet.new(@server, @server.do_action(@server.state[:account_name], @server.state[:password], '-dbnames', {}).body).each {|record|
             name = record['DATABASE_NAME']
             self[name] = Rfm::Database.new(name, @server) if self[name] == nil
@@ -44,7 +44,7 @@ module Rfm
       end
       
       def all
-        if !@loaded
+        unless @loaded
           Rfm::Result::ResultSet.new(@server, @server.do_action(@server.state[:account_name], @server.state[:password], '-layoutnames', {"-db" => @database.name}).body).each {|record|
             name = record['LAYOUT_NAME']
             self[name] = Rfm::Layout.new(name, @database) if self[name] == nil
@@ -69,7 +69,7 @@ module Rfm
       end
       
       def all
-        if !@loaded
+        unless @loaded
           Rfm::Result::ResultSet.new(@server, @server.do_action(@server.state[:account_name], @server.state[:password], '-scriptnames', {"-db" => @database.name}).body).each {|record|
             name = record['SCRIPT_NAME']
             self[name] = Rfm::Script.new(name, @database) if self[name] == nil
