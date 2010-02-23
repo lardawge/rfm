@@ -58,31 +58,23 @@ if your web publishing engine runs on a port other than 80, you can provide the 
 
 All access to data in FileMaker's XML interface is done through layouts, and layouts live in databases. The Rfm::Server object has a collection of databases called 'db'. So to get ahold of a database called "My Database", you can do this:
 
-  my_db = my_server.db["My Database"]
-
-As a convenience, you can do this too:
-
-  my_db = my_server["My Database"]
+  my_db = my_server.db("My Database")
 
 Finally, if you want to introspect the server and find out what databases are available, you can do this:
 
-  all_dbs = my_server.db.all
+  all_dbs = my_server.databases
 
 In any case, you get back Rfm::Database objects. A database object in turn has a property called "layout":
 
-  my_layout = my_db.layout["My Layout"]
-
-Again, for convenience:
-
-  my_layout = my_db["My Layout"]
+  my_layout = my_db.layout("My Layout")
 
 And to get them all:
 
-  all_layouts = my_db.layout.all
+  all_layouts = my_db.layouts
 
 Bringing it all together, you can do this to go straight from a server to a specific layout:
 
-  my_layout = my_server["My Database"]["My Layout"]
+  my_layout = my_server.db("My Database").layout("My Layout")
 
 NOTE: for the ruby experts, Rfm::Server#db is an Rfm::Factory::DatabaseFactory object, which is just a fancied up Hash. So anything you can do with a hash, you can also do with my_server.db. The same goes for my_db.layouts, which is an Rfm::Factory::LayoutFactory.
 
@@ -91,7 +83,7 @@ NOTE: for the ruby experts, Rfm::Server#db is an Rfm::Factory::DatabaseFactory o
 
 Once you have a layout object, you can start doing some real work. To get every record from the layout:
 
-  my_layout.all   # be careful with this
+  my_layout.all
 
 To get a random record:
 
@@ -106,8 +98,8 @@ To add a new record with my personal info:
   my_layout.create({
     :first_name => "Geoff",
     :last_name => "Coffey",
-    :email => "gwcoffey@gmail.com"}
-  )
+    :email => "gwcoffey@gmail.com"
+  })
 
 Notice that in this case I used symbols instead of strings for the hash keys. The API will accept either form, so if your field names don't have whitespace or punctuation, you might prefer the symbol notation.
 
@@ -125,7 +117,7 @@ All of these methods return an Rfm::Result::ResultSet object (see below), and ev
 
   my_layout.find({:state => "AZ"}, {:max_records => 10, :skip_records => 100})
 
-For a complete list of the available options, see the "expand_options" method in the Rfm::Server object in the file named rfm_command.rb.
+For a complete list of the available options, see the "expand_options" method in the Rfm::Server.
 
 Finally, if filemaker returns an error when executing any of these methods, an error will be raised in your ruby script. There is one exception to this, though. If a find results in no records being found (FileMaker error # 401) I just ignore it and return you a ResultSet with zero records in it. If you prefer an error in this case, add :raise_on_401 => true to the options you pass the Rfm::Server when you create it.
 
@@ -216,7 +208,7 @@ FileMaker's field types are coerced to Ruby types thusly:
   TimeStamp Field -> DateTime object
   Container Field -> URI object
 
-FileMaker's number field is insanely robust. The only data type in ruby that can handle the same magnitude and precision of a FileMaker number is Ruby's BigDecimal. (This is an extension class, so you have to require 'bigdecimal' to use it yourself). Unfortuantely, BigDecimal is not a "normal" ruby numeric class, so it might be really annoying that your tiny filemaker numbers have to go this route. This is a great topic for debate.
+FileMaker's number field is insanely robust. The only data type in ruby that can handle the same magnitude and precision of a FileMaker number is Ruby's BigDecimal. (This is an extension class, so you have to require 'bigdecimal' to use it yourself). Unfortunately, BigDecimal is not a "normal" ruby numeric class, so it might be really annoying that your tiny filemaker numbers have to go this route. This is a great topic for debate.
 
 Also, Ruby doesn't have a Time type that stores just a normal time (with no date attached). The Time class in ruby is a lot like DateTime, or a Timestamp in FileMaker. When I get a Time field from FileMaker, I turn it into a DateTime object, and set its date to the oldest date Ruby supports. You can still compare these in all the normal ways, so this should be fine, but it will look weird if you, ie, to_s one and see an odd date attached to your time.
 
@@ -230,7 +222,7 @@ Specifically, the URI refers to the _contents_ of the container field. When acce
 
 == Troubleshooting
 
-There are two cheesy methods to help track down problems. When you create a server object, you can provide two additional optional parameters:
+There are two methods to help track down problems. When you create a server object, you can provide two additional optional parameters:
 
 :log_actions
 When this is 'true' your script will write every URL it sends to the web publishing engine to standard out. For the rails users, this means the action url will wind up in your WEBrick or Mongrel log. If you can't make sense of what you're getting, you might try copying the URL into your browser to see what is actually coming back from FileMaker.
