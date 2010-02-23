@@ -5,7 +5,6 @@
 # Author::    Geoff Coffey  (mailto:gwcoffey@gmail.com)
 # Copyright:: Copyright (c) 2007 Six Fried Rice, LLC and Mufaddal Khumri
 # License::   See MIT-LICENSE for details
-require 'nokogiri'
 require 'bigdecimal'
 require 'date'
 
@@ -18,8 +17,8 @@ module Rfm
     #
     # Here's a typical example, displaying the results of a Find:
     #
-    #   myServer = Rfm::Server.new(...)
-    #   results = myServer["Customers"]["Details"].find("First Name" => "Bill")
+    #   my_server = Rfm::Server.new(...)
+    #   results = my_server["Customers"]["Details"].find("First Name" => "Bill")
     #   results.each {|record|
     #     puts record["First Name"]
     #     puts record["Last Name"]
@@ -61,7 +60,7 @@ module Rfm
       # * *portals* is a hash (with table occurrence names for keys and Field objects for values). If your
       #   layout contains portals, you can find out what fields they contain here. Again, if it's the data you're
       #   after, you want to look at the Record object.
-      def initialize(server, fmresultset, layout = nil)
+      def initialize(server, fmresultset, layout=nil)
         @server = server
         @resultset = nil
         @layout = layout
@@ -75,25 +74,21 @@ module Rfm
         
         doc = Nokogiri.XML(fmresultset)
         
-        #seperate content for less searching
-        datasource  = doc.search('datasource')
-        resultset   = doc.search('resultset')
-        metadata    = doc.search('metadata')
+        check_for_errors(doc.search('error').attribute('code').value.to_i)
         
-        # check for errors
-        error = doc.search('error').attribute('code').value.to_i
-        if error != 0 && (error != 401 || @server.state[:raise_on_401])
-          raise Rfm::Error::FileMakerError.getError(error) 
-        end
+        #seperate content
+        metadata = doc.search('metadata')
+        source   = doc.search('datasource')
+        result   = doc.search('resultset')
         
         # ascertain date and time formats
-        @date_format      = convertFormatString(datasource.attribute('date-format').value)
-        @time_format      = convertFormatString(datasource.attribute('time-format').value)
-        @timestamp_format = convertFormatString(datasource.attribute('timestamp-format').value)
+        @date_format      = convertFormatString(source.attribute('date-format').value)
+        @time_format      = convertFormatString(source.attribute('time-format').value)
+        @timestamp_format = convertFormatString(source.attribute('timestamp-format').value)
         
         # retrieve count
-        @foundset_count = resultset.attribute('count').value.to_i
-        @total_count    = datasource.attribute('total-count').value.to_i
+        @foundset_count = result.attribute('count').value.to_i
+        @total_count    = source.attribute('total-count').value.to_i
         
         # process field metadata
         metadata.search('field-definition').each do |field|
@@ -103,8 +98,8 @@ module Rfm
         
         # process relatedset metadata
         metadata.search('relatedset-definition').each do |relatedset|
-          table = relatedset.attribute('table').value
-          fields = {}
+          table  = relatedset.attribute('table').value
+          fields = Hash.new
           relatedset.search('field-definition').each do |field|
             name = field.attribute('name').value.sub(Regexp.new(table + '::'), '')
             fields[name] = Field.new(self, field)
@@ -114,7 +109,7 @@ module Rfm
         @portals.freeze
         
         # build record rows
-        resultset.search('record').each do |record|
+        result.search('record').each do |record|
           self << Record.new(record, self, @fields, @layout)
         end
       end  
@@ -122,6 +117,10 @@ module Rfm
       attr_reader :server, :fields, :portals, :date_format, :time_format, :timestamp_format, :total_count, :foundset_count, :layout
       
       private
+      
+        def check_for_errors(error_code)
+          raise Rfm::Error::FileMakerError.get_error(error_code) if error_code != 0 && (error_code != 401 || @server.state[:raise_on_401])
+        end
       
         def convertFormatString(fm_format)
           fm_format.gsub('MM', '%m').gsub('dd', '%d').gsub('yyyy', '%Y').gsub('HH', '%H').gsub('mm', '%M').gsub('ss', '%S')
