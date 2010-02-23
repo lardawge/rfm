@@ -15,7 +15,7 @@
 #   
 #   err.code
 #   
-# Author::    Mufaddal Khumri
+# Author::    Mufaddal Khumri, Larry Sprock (updated in 2010)
 # Copyright:: Copyright (c) 2007 Six Fried Rice, LLC and Mufaddal Khumri
 # License::   See MIT-LICENSE for details
 module Rfm
