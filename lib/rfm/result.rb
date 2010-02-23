@@ -18,7 +18,7 @@ module Rfm
     # Here's a typical example, displaying the results of a Find:
     #
     #   my_server = Rfm::Server.new(...)
-    #   results = my_server["Customers"]["Details"].find("First Name" => "Bill")
+    #   results = my_server.db("Customers").layout("Details").find("First Name" => "Bill")
     #   results.each {|record|
     #     puts record["First Name"]
     #     puts record["Last Name"]
@@ -60,19 +60,22 @@ module Rfm
       # * *portals* is a hash (with table occurrence names for keys and Field objects for values). If your
       #   layout contains portals, you can find out what fields they contain here. Again, if it's the data you're
       #   after, you want to look at the Record object.
-      def initialize(server, fmresultset, layout=nil)
-        @server = server
-        @resultset = nil
-        @layout = layout
-        @fields = Rfm::Utility::CaseInsensitiveHash.new
-        @portals = Rfm::Utility::CaseInsensitiveHash.new
-        @date_format = nil
-        @time_format = nil
-        @timestamp_format = nil
-        @total_count = nil
-        @foundset_count = nil
+      attr_accessor :server, :fields, :portals, :date_format, :time_format, :timestamp_format, :total_count, :foundset_count, :layout
+      attr_writer :resultset
+      
+      def initialize(server, fm_data, layout=nil)
+        self.server = server
+        self.resultset = nil
+        self.layout = layout
+        self.fields = Rfm::Utility::CaseInsensitiveHash.new
+        self.portals = Rfm::Utility::CaseInsensitiveHash.new
+        self.date_format = nil
+        self.time_format = nil
+        self.timestamp_format = nil
+        self.total_count = nil
+        self.foundset_count = nil
         
-        doc = Nokogiri.XML(fmresultset)
+        doc = Nokogiri.XML(fm_data)
         
         check_for_errors(doc.search('error').attribute('code').value.to_i)
         
@@ -113,13 +116,11 @@ module Rfm
           self << Record.new(record, self, @fields, @layout)
         end
       end  
-          
-      attr_reader :server, :fields, :portals, :date_format, :time_format, :timestamp_format, :total_count, :foundset_count, :layout
       
       private
       
         def check_for_errors(error_code)
-          raise Rfm::Error::FileMakerError.get_error(error_code) if error_code != 0 && (error_code != 401 || @server.state[:raise_on_401])
+          raise Rfm::Error::FileMakerError.get_error(error_code) if error_code != 0 && (error_code != 401 || @server.options[:raise_on_401])
         end
       
         def convertFormatString(fm_format)

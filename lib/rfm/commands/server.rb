@@ -16,7 +16,7 @@ module Rfm
   #
   # Typically, you access a Database object from the Server like this:
   #
-  #   my_db = my_server["Customers"]
+  #   my_db = my_server.db("Customers")
   # 
   # This code gets the Database object representing the Customers object.
   # 
@@ -30,7 +30,7 @@ module Rfm
   # like a hash of Database objects, one for each accessible database on the server. So, for example, you
   # can do this if you want to print out a list of all databases on the server:
   # 
-  #   my_server.db.all.each { |database| puts database.name }
+  #   my_server.databases.each { |database| puts database.name }
   # 
   # The Server::db attribute is actually a DbFactory object, although it subclasses hash, so it should work
   # in all the ways you expect. Note, though, that it is completely empty until the first time you attempt 
@@ -51,7 +51,7 @@ module Rfm
   # object from a server, its account name and password are set to the account name and password you 
   # used when initializing the Server object. You can override this of course:
   #
-  #   my_db = my_server["Customers"]
+  #   my_db = my_server.db("Customers")
   #   my_db.account_name = "foo"
   #   my_db.password = "bar"
   #
@@ -60,7 +60,7 @@ module Rfm
   # All interaction with FileMaker happens through a Layout object. You can get a Layout object
   # from the Database object like this:
   #
-  #   my_layout = my_db["Details"]
+  #   my_layout = my_db.layout("Details")
   #
   # This code gets the Layout object representing the layout called Details in the database.
   #
@@ -74,7 +74,7 @@ module Rfm
   # like a hash of Layout objects, one for each accessible layout in the database. So, for example, you
   # can do this if you want to print out a list of all layouts:
   # 
-  #   my_db.layout.each { |layout| puts layout.name }
+  #   my_db.layouts.each { |layout| puts layout.name }
   # 
   # The Database::layout attribute is actually a LayoutFactory object, although it subclasses hash, so it
   # should work in all the ways you expect. Note, though, that it is completely empty until the first time
@@ -85,7 +85,7 @@ module Rfm
   #
   # If for some reason you need to enumerate the scripts in a database, you can do so:
   #  
-  #   my_db.script.each { |script| puts script.name }
+  #   my_db.scripts.each { |script| puts script.name }
   # 
   # The Database::script attribute is actually a ScriptFactory object, although it subclasses hash, so it
   # should work in all the ways you expect. Note, though, that it is completely empty until the first time
@@ -188,8 +188,10 @@ module Rfm
     #            :root_cert_path => '/usr/cert_file/'
     #            )
     
-    def initialize(options)
-      @state = {
+    attr_accessor :database, :host_name, :port, :scheme, :options
+    
+    def initialize(user_options={})
+      self.options = {
         :host => 'localhost',
         :port => 80,
         :ssl => true,
@@ -202,18 +204,18 @@ module Rfm
         :log_responses => false,
         :warn_on_redirect => true,
         :raise_on_401 => false
-      }.merge(options)
+      }.merge(user_options)
     
-      @host_name = @state[:host]
-      @scheme    = @state[:ssl] ? "https" : "http"
-      @port      = @state[:ssl] && options[:port].nil? ? 443 : @state[:port]
-    
-      @db = Rfm::Factory::DbFactory.new(self)
+      self.host_name = self.options[:host]
+      self.scheme    = self.options[:ssl] ? "https" : "http"
+      self.port      = self.options[:ssl] && user_options[:port].nil? ? 443 : self.options[:port]
+      
+      self.database = Rfm::Factory::DbFactory.new(self)
     end
     
     # Access the database object representing a database on the server. For example:
     #
-    #   myServer['Customers']
+    #   myServer.db('Customers')
     #
     # would return a Database object representing the _Customers_
     # database on the server.
@@ -223,13 +225,19 @@ module Rfm
     # get no error at this point if the database you access doesn't exist. Instead, you'll
     # receive an error when you actually try to perform some action on a layout from this
     # database.
-    
-    def [](dbname)
-      self.db[dbname]
+    def databases
+      @database.all
     end
-    alias :database :[]
     
-    attr_reader :db, :host_name, :port, :scheme, :state
+    def db(dbname)
+      self.database[dbname]
+    end
+    
+    #TODO remove for next major release
+    def [](dbname) # :nodoc:
+      warn "#[] is deprecated, use #db() instead"
+      db(dbname)
+    end
     
     # Performs a raw FileMaker action. You will generally not call this method directly, but it
     # is exposed in case you need to do something "under the hood."
@@ -273,7 +281,7 @@ module Rfm
       def http_fetch(host_name, port, path, account_name, password, post_data, limit=10)
         raise Rfm::Error::CommunicationError.new("While trying to reach the Web Publishing Engine, RFM was redirected too many times.") if limit == 0
     
-        if @state[:log_actions]
+        if @options[:log_actions]
           qs = post_data.collect { |key,value| "#{CGI::escape(key.to_s)}=#{CGI::escape(value.to_s)}" }.join("&")
           warn "#{@scheme}://#{@host_name}:#{@port}#{path}?#{qs}"
         end
@@ -284,11 +292,11 @@ module Rfm
     
         response = Net::HTTP.new(host_name, port)
     
-        if @state[:ssl]
+        if @options[:ssl]
           response.use_ssl = true
-          if @state[:root_cert]
+          if @options[:root_cert]
             response.verify_mode = OpenSSL::SSL::VERIFY_PEER
-            response.ca_file = File.join(@state[:root_cert_path], @state[:root_cert_name])
+            response.ca_file = File.join(@options[:root_cert_path], @options[:root_cert_name])
           else
             response.verify_mode = OpenSSL::SSL::VERIFY_NONE
           end
@@ -296,7 +304,7 @@ module Rfm
     
         response = response.start { |http| http.request(request) }
     
-        if @state[:log_responses]
+        if @options[:log_responses]
           response.to_hash.each { |key, value| warn "#{key}: #{value}" }
           warn response.body
         end
@@ -305,7 +313,7 @@ module Rfm
         when Net::HTTPSuccess
           response
         when Net::HTTPRedirection
-          if @state[:warn_on_redirect]
+          if @options[:warn_on_redirect]
             warn "The web server redirected to " + response['location'] + 
             ". You should revise your connection hostname or fix your server configuration if possible to improve performance."
           end

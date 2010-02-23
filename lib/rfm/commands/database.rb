@@ -3,16 +3,16 @@ module Rfm
   # object from a server, its account name and password are set to the account name and password you 
   # used when initializing the Server object. You can override this of course:
   #
-  #   myDatabase = myServer["Customers"]
-  #   myDatabase.account_name = "foo"
-  #   myDatabase.password = "bar"
+  #   my_database = my_server("Customers")
+  #   my_database.account_name = "foo"
+  #   my_database.password = "bar"
   #
   # =Accessing Layouts
   #
   # All interaction with FileMaker happens through a Layout object. You can get a Layout object
   # from the Database object like this:
   #
-  #   myLayout = myDatabase["Details"]
+  #   my_layout = my_database.layout("Details")
   #
   # This code gets the Layout object representing the layout called Details in the database.
   #
@@ -26,9 +26,7 @@ module Rfm
   # like a hash of Layout objects, one for each accessible layout in the database. So, for example, you
   # can do this if you want to print out a list of all layouts:
   # 
-  #   myDatabase.layout.each {|layout|
-  #     puts layout.name
-  #   }
+  #   my_database.layouts.each {|layout| puts layout.name }
   # 
   # The Database::layout attribute is actually a LayoutFactory object, although it subclasses hash, so it
   # should work in all the ways you expect. Note, though, that it is completely empty until the first time
@@ -39,9 +37,7 @@ module Rfm
   #
   # If for some reason you need to enumerate the scripts in a database, you can do so:
   #  
-  #   myDatabase.script.each {|script|
-  #     puts script.name
-  #   }
+  #   my_database.scripts.each { |script| puts script.name }
   # 
   # The Database::script attribute is actually a ScriptFactory object, although it subclasses hash, so it
   # should work in all the ways you expect. Note, though, that it is completely empty until the first time
@@ -56,30 +52,29 @@ module Rfm
   #
   # * *server* is the Server object this database comes from
   # * *name* is the name of this database
-  # * *state* is a hash of all server options used to initialize this server
+  # * *options* is a hash of all server options used to initialize this server
   class Database
   
     # Initialize a database object. You never really need to do this. Instead, just do this:
     # 
-    #   myServer = Rfm::Server.new(...)
-    #   myDatabase = myServer["Customers"]
+    #   my_server = Rfm::Server.new(...)
+    #   my_database = my_server.db("Customers")
     #
     # This sample code gets a database object representing the Customers database on the FileMaker server.
-    def initialize(name, server)
-      @name = name
-      @server = server
-      @account_name = server.state[:account_name] or ""
-      @password = server.state[:password] or ""
-      @layout = Rfm::Factory::LayoutFactory.new(server, self)
-      @script = Rfm::Factory::ScriptFactory.new(server, self)
-    end
+    attr_accessor :server, :name, :account_name, :password, :fm_layout, :script
     
-    attr_reader :server, :name, :account_name, :password, :layout, :script
-    attr_writer :account_name, :password
+    def initialize(name, server)
+      self.name = name
+      self.server = server
+      self.account_name = server.options[:account_name] or ""
+      self.password = server.options[:password] or ""
+      self.fm_layout = Rfm::Factory::LayoutFactory.new(server, self)
+      self.script = Rfm::Factory::ScriptFactory.new(server, self)
+    end
 
     # Access the Layout object representing a layout in this database. For example:
     #
-    #   myDatabase['Details']
+    #   myDatabase.layout('Details')
     #
     # would return a Layout object representing the _Details_
     # layout in the database.
@@ -88,8 +83,22 @@ module Rfm
     # returned is created on the fly and assumed to refer to a valid layout, but you will
     # get no error at this point if the layout you specify doesn't exist. Instead, you'll
     # receive an error when you actually try to perform some action it.
-    def [](layout_name)
-      self.layout[layout_name]
+    def layout(name)
+      self.fm_layout[name]
+    end
+    
+    #TODO remove in next major release.
+    def [](layout_name) # :nodoc:
+      warn "#[] is deprecated, use #layout instead"
+      layout(layout_name)
+    end
+    
+    def layouts
+      @fm_layout.all
+    end
+    
+    def scripts
+      @script.all
     end
 
   end

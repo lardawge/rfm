@@ -123,8 +123,8 @@ module Rfm
     # Initialize a layout object. You never really need to do this. Instead, just do this:
     # 
     #   my_server = Rfm::Server.new(...)
-    #   my_db = my_server["Customers"]
-    #   my_layout = my_db["Details"]
+    #   my_db = my_server.db("Customers")
+    #   my_layout = my_db.layout("Details")
     #
     # This sample code gets a layout object representing the Details layout in the Customers database
     # on the FileMaker server.
@@ -132,13 +132,13 @@ module Rfm
     # In case it isn't obvious, this is more easily expressed this way:
     #
     #   my_server = Rfm::Server.new(...)
-    #   my_layout = my_server("Customers")["Details"]
-    def initialize(name, db)
-      @name = name
-      @db = db
-    end
+    #   my_layout = my_server.db("Customers").layout("Details")
+    attr_accessor :name, :db
     
-    attr_reader :name, :db
+    def initialize(name, db)
+      self.name = name
+      self.db = db
+    end
     
     def field_controls
       load_layout_data unless defined? @field_controls

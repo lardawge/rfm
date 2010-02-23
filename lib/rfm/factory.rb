@@ -11,7 +11,6 @@ module Rfm
     
       def initialize(server)
         @server = server
-        @loaded = false
       end
       
       def [](dbname)
@@ -19,12 +18,9 @@ module Rfm
       end
       
       def all
-        unless @loaded
-          Rfm::Result::ResultSet.new(@server, @server.do_action(@server.state[:account_name], @server.state[:password], '-dbnames', {}).body).each {|record|
-            name = record['DATABASE_NAME']
-            self[name] = Rfm::Database.new(name, @server) if self[name] == nil
-          }
-          @loaded = true
+        Rfm::Result::ResultSet.new(@server, @server.do_action(@server.options[:account_name], @server.options[:password], '-dbnames', {}).body).each do |record|
+          name = record['database_name']
+          self[name] = Rfm::Database.new(name, @server) if self[name] == nil
         end
         self.values
       end
@@ -36,7 +32,6 @@ module Rfm
       def initialize(server, database)
         @server = server
         @database = database
-        @loaded = false
       end
       
       def [](layout_name)
@@ -44,12 +39,9 @@ module Rfm
       end
       
       def all
-        unless @loaded
-          Rfm::Result::ResultSet.new(@server, @server.do_action(@server.state[:account_name], @server.state[:password], '-layoutnames', {"-db" => @database.name}).body).each {|record|
-            name = record['LAYOUT_NAME']
-            self[name] = Rfm::Layout.new(name, @database) if self[name] == nil
-          }
-          @loaded = true
+        Rfm::Result::ResultSet.new(@server, @server.do_action(@server.options[:account_name], @server.options[:password], '-layoutnames', {"-db" => @database.name}).body).each do |record|
+          name = record['layout_name']
+          self[name] = Rfm::Layout.new(name, @database) if self[name] == nil
         end
         self.values
       end
@@ -61,7 +53,6 @@ module Rfm
       def initialize(server, database)
         @server = server
         @database = database
-        @loaded = false
       end
       
       def [](script_name)
@@ -69,12 +60,9 @@ module Rfm
       end
       
       def all
-        unless @loaded
-          Rfm::Result::ResultSet.new(@server, @server.do_action(@server.state[:account_name], @server.state[:password], '-scriptnames', {"-db" => @database.name}).body).each {|record|
-            name = record['SCRIPT_NAME']
-            self[name] = Rfm::Script.new(name, @database) if self[name] == nil
-          }
-          @loaded = true
+        Rfm::Result::ResultSet.new(@server, @server.do_action(@server.options[:account_name], @server.options[:password], '-scriptnames', {"-db" => @database.name}).body).each do |record|
+          name = record['script_name']
+          self[name] = Rfm::Script.new(name, @database) if self[name] == nil
         end
         self.values
       end
