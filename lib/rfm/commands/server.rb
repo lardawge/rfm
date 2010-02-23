@@ -1,5 +1,6 @@
 require 'net/https'
 require 'cgi'
+
 module Rfm
   # This class represents a single FileMaker server. It is initialized with basic
   # connection information, including the hostname, port number, and default database
@@ -29,7 +30,7 @@ module Rfm
   # like a hash of Database objects, one for each accessible database on the server. So, for example, you
   # can do this if you want to print out a list of all databases on the server:
   # 
-  #   my_server.db.each { |database| puts database.name }
+  #   my_server.db.all.each { |database| puts database.name }
   # 
   # The Server::db attribute is actually a DbFactory object, although it subclasses hash, so it should work
   # in all the ways you expect. Note, though, that it is completely empty until the first time you attempt 
@@ -203,8 +204,6 @@ module Rfm
         :raise_on_401 => false
       }.merge(options)
     
-      @state.freeze
-    
       @host_name = @state[:host]
       @scheme    = @state[:ssl] ? "https" : "http"
       @port      = @state[:ssl] && options[:port].nil? ? 443 : @state[:port]
@@ -224,9 +223,11 @@ module Rfm
     # get no error at this point if the database you access doesn't exist. Instead, you'll
     # receive an error when you actually try to perform some action on a layout from this
     # database.
+    
     def [](dbname)
       self.db[dbname]
     end
+    alias :database :[]
     
     attr_reader :db, :host_name, :port, :scheme, :state
     
