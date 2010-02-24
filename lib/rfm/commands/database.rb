@@ -68,8 +68,8 @@ module Rfm
       self.server = server
       self.account_name = server.options[:account_name] or ""
       self.password = server.options[:password] or ""
-      self.fm_layout = Rfm::Factory::LayoutFactory.new(server, self)
-      self.script = Rfm::Factory::ScriptFactory.new(server, self)
+      self.fm_layout = Factory::LayoutFactory.new(server, self)
+      self.script = Factory::ScriptFactory.new(server, self)
     end
 
     # Access the Layout object representing a layout in this database. For example:

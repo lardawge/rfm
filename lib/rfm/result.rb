@@ -65,10 +65,9 @@ module Rfm
       
       def initialize(server, fm_data, layout=nil)
         self.server = server
-        self.resultset = nil
         self.layout = layout
-        self.fields = Rfm::Utility::CaseInsensitiveHash.new
-        self.portals = Rfm::Utility::CaseInsensitiveHash.new
+        self.fields = Utility::CaseInsensitiveHash.new
+        self.portals = Utility::CaseInsensitiveHash.new
         self.date_format = nil
         self.time_format = nil
         self.timestamp_format = nil
@@ -120,7 +119,7 @@ module Rfm
       private
       
         def check_for_errors(error_code)
-          raise Rfm::Error::FileMakerError.get_error(error_code) if error_code != 0 && (error_code != 401 || @server.options[:raise_on_401])
+          raise Error::FileMakerError.get_error(error_code) if error_code != 0 && (error_code != 401 || @server.options[:raise_on_401])
         end
       
         def convertFormatString(fm_format)
@@ -227,7 +226,7 @@ module Rfm
     # * *mod_id* is the modification identifier for the record; whenever a record is modified, its +mod_id+
     #   changes so you can tell if the Record object you're looking at is up-to-date as compared to another
     #   copy of the same record
-    class Record < Rfm::Utility::CaseInsensitiveHash
+    class Record < Utility::CaseInsensitiveHash
       
       # Initializes a Record object. You really really never need to do this yourself. Instead, get your records
       # from a ResultSet object.
@@ -258,7 +257,7 @@ module Rfm
         end
         
         unless related_sets.empty?
-          @portals = Rfm::Utility::CaseInsensitiveHash.new
+          @portals = Utility::CaseInsensitiveHash.new
           related_sets.each do |relatedset|
             table = relatedset['table']
             records = []
@@ -318,7 +317,7 @@ module Rfm
         if self[name] != nil
           @mods[name] = val
         else
-          raise Rfm::Error::ParameterError.new("You attempted to modify a field called '#{name}' on the Rfm::Record object, but that field does not exist.")
+          raise Error::ParameterError.new("You attempted to modify a field called '#{name}' on the Rfm::Record object, but that field does not exist.")
         end
       end
       
