@@ -20,31 +20,24 @@ module Rfm
   # * *value_list* is an array of strings representing the value list items, or nil
   #   if this field has no attached value list
   class FieldControl
+    attr_accessor :name, :style, :value_list_name, :value_list
+
     def initialize(name, style, value_list_name, value_list)
-      @name = name
+      self.name = name
       case style
-      when "EDITTEXT"
-        @style = :edit_box
-      when "POPUPMENU"
-        @style = :popup_menu
-      when "CHECKBOX"
-        @style = :checkbox_set
-      when "RADIOBUTTONS"
-        @style = :radio_button_set
-      when "POPUPLIST"
-        @style = :popup_list
-      when "CALENDAR"
-        @style = :calendar
-      when "SCROLLTEXT"
-        @style = :scrollable
+      when "EDITTEXT"     then self.style = :edit_box
+      when "POPUPMENU"    then self.style = :popup_menu
+      when "CHECKBOX"     then self.style = :checkbox_set
+      when "RADIOBUTTONS" then self.style = :radio_button_set
+      when "POPUPLIST"    then self.style = :popup_list
+      when "CALENDAR"     then self.style = :calendar
+      when "SCROLLTEXT"   then self.style = :scrollable
       else
         nil
       end
-      @value_list_name = value_list_name
-      @value_list = value_list
+      self.value_list_name = value_list_name
+      self.value_list = value_list
     end
-    
-    attr_reader :name, :style, :value_list_name, :value_list
   
   end
 end
