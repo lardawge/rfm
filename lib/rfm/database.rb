@@ -66,10 +66,10 @@ module Rfm
     def initialize(name, server)
       self.name = name
       self.server = server
-      self.account_name = server.options[:account_name] or ""
-      self.password = server.options[:password] or ""
-      self.fm_layout = Factory::LayoutFactory.new(server, self)
-      self.script = Factory::ScriptFactory.new(server, self)
+      self.account_name = server.options[:account_name] || ""
+      self.password = server.options[:password] || ""
+      self.fm_layout = Factories::LayoutFactory.new(server, self)
+      self.script = Factories::ScriptFactory.new(server, self)
     end
 
     # Access the Layout object representing a layout in this database. For example:
@@ -93,10 +93,12 @@ module Rfm
       layout(layout_name)
     end
     
+    # List all layouts belonging to a given database
     def layouts
       @fm_layout.all
     end
     
+    # List all scripts belonging to a given database
     def scripts
       @script.all
     end

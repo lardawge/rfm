@@ -224,13 +224,13 @@ module Rfm
 
         # check for errors
         error = doc.search('ERRORCODE').text.to_i
-        raise Error::FileMakerError.get_error(error) if error != 0
+        raise FileMakerError.get_error(error) if error != 0
         
         value_lists = doc.search('VALUELISTS')
         layouts = doc.search('LAYOUT')
         
         # process valuelists
-        @value_lists = Utility::CaseInsensitiveHash.new
+        @value_lists = CaseInsensitiveHash.new
         unless value_lists.empty?
           value_lists.search('VALUELIST').each do |valuelist|
             name = valuelist.attribute('NAME').value
@@ -239,7 +239,7 @@ module Rfm
         end
         
         # process field controls
-        @field_controls = Utility::CaseInsensitiveHash.new
+        @field_controls = CaseInsensitiveHash.new
         layouts.search('FIELD').each do |field| 
           name = field.attribute('NAME').value
           style = field.search('STYLE')
@@ -261,7 +261,7 @@ module Rfm
       end
       
       def get_records(action, extra_params = {}, options = {})
-        Result::ResultSet.new(@db.server, @db.server.do_action(@db.account_name, 
+        ResultSet.new(@db.server, @db.server.do_action(@db.account_name, 
         @db.password, action, params().merge(extra_params), options).body, self)
       end
       

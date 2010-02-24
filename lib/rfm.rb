@@ -227,16 +227,35 @@ path = File.expand_path(File.dirname(__FILE__))
 $:.unshift(path) unless $:.include?(path)
 
 module Rfm
+  class CaseInsensitiveHash < Hash
+    def []=(key, value)
+      super(key.downcase, value)
+    end
+    def [](key)
+      super(key.downcase)
+    end
+  end
   
-  autoload :Error, "rfm/error"
-  autoload :Factory, "rfm/factory"
-  autoload :Result, "rfm/result"
-  autoload :Utility, "rfm/utility"
+  class RfmError < StandardError
+  end
   
-  autoload :Database, 'rfm/commands/database'
-  autoload :FieldControl, 'rfm/commands/field_control'
-  autoload :Layout, 'rfm/commands/layout'
-  autoload :Script, 'rfm/commands/script'
-  autoload :Server, 'rfm/commands/server'
+  class CommunicationError < RfmError
+  end
+  
+  class ParameterError < RfmError
+  end
+  
+  class AuthenticationError < RfmError
+  end
+  
+  autoload :Factories, 'rfm/utilities/factories'
+  autoload :FileMakerError, "rfm/exceptions"
+  autoload :ResultSet, "rfm/resultset"
+  autoload :Record, "rfm/record"
+  autoload :Field, "rfm/field"
+  autoload :Database, 'rfm/database'
+  autoload :FieldControl, 'rfm/field_control'
+  autoload :Layout, 'rfm/layout'
+  autoload :Server, 'rfm/server'
   
 end

@@ -210,7 +210,7 @@ module Rfm
       self.scheme    = self.options[:ssl] ? "https" : "http"
       self.port      = self.options[:ssl] && user_options[:port].nil? ? 443 : self.options[:port]
       
-      self.database = Factory::DbFactory.new(self)
+      self.database = Factories::DbFactory.new(self)
     end
     
     # Access the database object representing a database on the server. For example:
@@ -279,7 +279,7 @@ module Rfm
     private
     
       def http_fetch(host_name, port, path, account_name, password, post_data, limit=10)
-        raise Error::CommunicationError.new("While trying to reach the Web Publishing Engine, RFM was redirected too many times.") if limit == 0
+        raise CommunicationError.new("While trying to reach the Web Publishing Engine, RFM was redirected too many times.") if limit == 0
     
         if @options[:log_actions]
           qs = post_data.collect { |key,value| "#{CGI::escape(key.to_s)}=#{CGI::escape(value.to_s)}" }.join("&")
@@ -321,13 +321,13 @@ module Rfm
           http_fetch(newloc.host, newloc.port, newloc.request_uri, account_name, password, post_data, limit - 1)
         when Net::HTTPUnauthorized
           msg = "The account name (#{account_name}) or password provided is not correct (or the account doesn't have the fmxml extended privilege)."
-          raise Error::AuthenticationError.new(msg)
+          raise AuthenticationError.new(msg)
         when Net::HTTPNotFound
           msg = "Could not talk to FileMaker because the Web Publishing Engine is not responding (server returned 404)."
-          raise Error::CommunicationError.new(msg)
+          raise CommunicationError.new(msg)
         else
           msg = "Unexpected response from server: #{result.code} (#{result.class.to_s}). Unable to communicate with the Web Publishing Engine."
-          raise Error::CommunicationError.new(msg)
+          raise CommunicationError.new(msg)
         end
       end
     
@@ -341,14 +341,14 @@ module Rfm
             result['-skip'] = value
           when :sort_field
             if value.kind_of? Array
-              raise Error::ParameterError.new(":sort_field can have at most 9 fields, but you passed an array with #{value.size} elements.") if value.size > 9
+              raise ParameterError.new(":sort_field can have at most 9 fields, but you passed an array with #{value.size} elements.") if value.size > 9
               value.each_index { |i| result["-sortfield.#{i+1}"] = value[i] }
             else
               result["-sortfield.1"] = value
             end
           when :sort_order
             if value.kind_of? Array
-              raise Error::ParameterError.new(":sort_order can have at most 9 fields, but you passed an array with #{value.size} elements.") if value.size > 9
+              raise ParameterError.new(":sort_order can have at most 9 fields, but you passed an array with #{value.size} elements.") if value.size > 9
               value.each_index { |i| result["-sortorder.#{i+1}"] = value[i] }
             else
               result["-sortorder.1"] = value
@@ -381,7 +381,7 @@ module Rfm
           when :modification_id
             result['-modid'] = value
           else
-            raise Error::ParameterError.new("Invalid option: #{key} (are you using a string instead of a symbol?)")
+            raise ParameterError.new("Invalid option: #{key} (are you using a string instead of a symbol?)")
           end
         end
         return result
