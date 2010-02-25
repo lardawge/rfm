@@ -19,6 +19,18 @@ module Rfm
   # Author::    Mufaddal Khumri, Larry Sprock (updated in 2010)
   # Copyright:: Copyright (c) 2007 Six Fried Rice, LLC and Mufaddal Khumri
   # License::   See MIT-LICENSE for details
+  class RfmError < StandardError
+  end
+  
+  class CommunicationError < RfmError
+  end
+  
+  class ParameterError < RfmError
+  end
+  
+  class AuthenticationError < RfmError
+  end
+  
   class FileMakerError < RfmError
     attr_accessor :code
     
