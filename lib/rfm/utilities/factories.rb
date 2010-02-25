@@ -18,8 +18,9 @@ module Rfm
       end
       
       def all
-        ResultSet.new(@server, @server.do_action(@server.options[:account_name], @server.options[:password], url_options, database_name).body).each do |record|
-          name = record['database_name']
+        set_options
+        ResultSet.new(@server, @server.do_action(@server.options[:account_name], @server.options[:password], @url_options, @database.nil? ? {} : { '-db' => @database.name }).body).each do |record|
+          name = record[@hash_key]
           self[name] = instantiate_klass(name) if self[name].nil?
         end
         self.values
@@ -29,8 +30,10 @@ module Rfm
     
     class DbFactory < Factory
       
-      def database_name; {}; end
-      def url_options; '-dbnames'; end
+      def set_options
+        @hash_key = 'database_name'
+        @url_options = '-dbnames'
+      end
       
       def instantiate_klass(dbname)
         Database.new(dbname, @server)
@@ -40,8 +43,10 @@ module Rfm
     
     class LayoutFactory < Factory
       
-      def database_name; {"-db" => @database.name}; end
-      def url_options; '-layoutnames';end
+      def set_options
+        @hash_key = 'layout_name'
+        @url_options = '-layoutnames'
+      end
       
       def instantiate_klass(layout_name)
         Layout.new(layout_name, @database)
@@ -51,8 +56,10 @@ module Rfm
     
     class ScriptFactory < Factory
       
-      def database_name; {"-db" => @database.name}; end
-      def url_options; '-scriptnames'; end
+      def set_options
+        @hash_key = 'script_name'
+        @url_options = '-scriptnames'
+      end
       
       def instantiate_klass(script_name)
         Script.new(script_name, @database)
