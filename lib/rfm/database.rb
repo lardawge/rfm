@@ -54,15 +54,14 @@ module Rfm
   # * *name* is the name of this database
   # * *options* is a hash of all server options used to initialize this server
   class Database
-  
+    attr_accessor :server, :name, :account_name, :password, :fm_layout, :script
+    
     # Initialize a database object. You never really need to do this. Instead, just do this:
     # 
     #   my_server = Rfm::Server.new(...)
     #   my_database = my_server.db("Customers")
     #
     # This sample code gets a database object representing the Customers database on the FileMaker server.
-    attr_accessor :server, :name, :account_name, :password, :fm_layout, :script
-    
     def initialize(name, server)
       self.name = name
       self.server = server

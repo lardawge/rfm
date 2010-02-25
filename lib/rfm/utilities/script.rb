@@ -1,8 +1,8 @@
-# Script object exists so you can enumerate all scripts in a Database (which is a rare need):
+# Script object exists so you can enumerate all scripts in a Database:
 # 
-#   my_database.scripts.each {|script| puts script.name }
+#   my_database.scripts.each { |script| puts script.name }
 module Rfm
-  class Script #nodoc: all
+  class Script #:nodoc: all
     attr_accessor :name, :db
     def initialize(name, db)
       self.name = name

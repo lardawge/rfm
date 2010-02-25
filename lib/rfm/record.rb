@@ -16,9 +16,7 @@ module Rfm
   #
   # And you can of course iterate:
   # 
-  #   results.each (|record|
-  #     // you can work with the record here
-  #   )
+  #   results.each { |record| // you can work with the record here }
   #
   # =Accessing Field Data
   #
@@ -63,9 +61,7 @@ module Rfm
   # using the Record::portals attribute. It is a hash with table occurrence names for keys, and arrays of Record
   # objects for values. In other words, you can do this:
   #
-  #   myRecord.portals["Orders"].each {|record|
-  #     puts record["Order Number"]
-  #   }
+  #   myRecord.portals["Orders"].each { |record| puts record["Order Number"] }
   #
   # This code iterates through the rows of the _Orders_ portal.
   # 
@@ -76,8 +72,8 @@ module Rfm
   #
   # * *Text* fields are converted to Ruby String objects
   # 
-  # * *Number* fields are converted to Ruby BigDecimal objects (the basic Ruby numeric types have
-  #   much less precision and range than FileMaker number fields)
+  # * *Number* fields are converted to Ruby BigDecimal objects
+  #   (the basic Ruby numeric types have much less precision and range than FileMaker number fields)
   #
   # * *Date* fields are converted to Ruby Date objects
   #
@@ -145,10 +141,10 @@ module Rfm
 
     # Saves local changes to the Record object back to Filemaker. For example:
     #
-    #   myLayout.find({"First Name" => "Bill"}).each(|record|
+    #   my_layout.find({"First Name" => "Bill"}).each { |record|
     #     record["First Name"] = "Steve"
     #     record.save
-    #   )
+    #   }
     #
     # This code finds every record with _Bill_ in the First Name field, then changes the first name to 
     # Steve.
@@ -161,7 +157,7 @@ module Rfm
       @mods.clear
     end
 
-    # Like Record::save, except it fails (and raises an error) if the underlying record in FileMaker was
+    # Like Record#save, except it fails (and raises an error) if the underlying record in FileMaker was
     # modified after the record was fetched but before it was saved. In other words, prevents you from
     # accidentally overwriting changes someone else made to the record.
     def save_if_not_modified
@@ -171,17 +167,17 @@ module Rfm
     
     # Gets the value of a field from the record. For example:
     #
-    #   first = myRecord["First Name"]
-    #   last = myRecord["Last Name"]
+    #   first = my_record["First Name"]
+    #   last = my_record["Last Name"]
     #
     # This sample puts the first and last name from the record into Ruby variables.
     #
     # You can also update a field:
     #
-    #   myRecord["First Name"] = "Sophia"
+    #   my_record["First Name"] = "Sophia"
     #
     # When you do, the change is noted, but *the data is not updated in FileMaker*. You must call
-    # Record::save or Record::save_if_not_modified to actually save the data.
+    # Record#save or Record#save_if_not_modified to actually save the data.
     def []=(pname, value)
       return super unless @loaded # keeps us from getting mods during initialization
       name = pname
@@ -192,7 +188,7 @@ module Rfm
       end
     end
     
-    def method_missing (symbol, *attrs)
+    def method_missing (symbol, *attrs) #:nodoc:
       # check for simple getter
       return self[symbol.to_s] if self.include?(symbol.to_s) 
 
@@ -204,7 +200,7 @@ module Rfm
       super
     end
     
-    def respond_to?(symbol, include_private = false)
+    def respond_to?(symbol, include_private = false) #:nodoc:
       return true if self[symbol.to_s] != nil
       super
     end

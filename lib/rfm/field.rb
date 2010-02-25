@@ -5,7 +5,7 @@ module Rfm
   # how:
   #
   #   field_name = "Some Field Name"
-  #   case myRecord.fields[field_name].result
+  #   case my_record.fields[field_name].result
   #   when "text"
   #     # it is a text field, so handle appropriately
   #   when "number"

@@ -1,10 +1,3 @@
-# This module includes classes that represent FileMaker data. When you communicate with FileMaker
-# using, ie, the Layout object, you typically get back ResultSet objects. These contain Records,
-# which in turn contain Fields, Portals, and arrays of data.
-#
-# Author::    Geoff Coffey  (mailto:gwcoffey@gmail.com)
-# Copyright:: Copyright (c) 2007 Six Fried Rice, LLC and Mufaddal Khumri
-# License::   See MIT-LICENSE for details
 require 'bigdecimal'
 require 'date'
 
@@ -37,6 +30,8 @@ module Rfm
   #   it provides metadata about the portals in the ResultSet and the Fields on those portals
 
   class ResultSet < Array
+    attr_accessor :server, :fields, :portals, :date_format, :time_format, :timestamp_format, :total_count, :foundset_count, :layout
+    attr_writer :resultset
     
     # Initializes a new ResultSet object. You will probably never do this your self (instead, use the Layout
     # object to get various ResultSet obejects).
@@ -59,8 +54,6 @@ module Rfm
     # * *portals* is a hash (with table occurrence names for keys and Field objects for values). If your
     #   layout contains portals, you can find out what fields they contain here. Again, if it's the data you're
     #   after, you want to look at the Record object.
-    attr_accessor :server, :fields, :portals, :date_format, :time_format, :timestamp_format, :total_count, :foundset_count, :layout
-    attr_writer :resultset
     
     def initialize(server, fm_data, layout=nil)
       self.server = server

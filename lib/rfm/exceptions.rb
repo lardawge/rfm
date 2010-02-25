@@ -1,24 +1,4 @@
 module Rfm
-  # These classes wrap the filemaker error codes. FileMakerError is the base class of this hierarchy.
-  # 
-  # One could raise a FileMakerError by doing:
-  #   raise Rfm::FileMakerError.get(102)
-  #
-  # It also takes an optional argument to giva a mor discriptive error message:
-  #   err = Rfm::FileMakerError.get(102, 'add description with more detail here')
-  # 
-  # The above code would return a FieldMissingError instance. Your could use this instance to raise that appropriate
-  # exception:
-  # 
-  #   raise err 
-  # 
-  # You could access the specific error code by accessing:
-  #   
-  #   err.code
-  #   
-  # Author::    Mufaddal Khumri, Larry Sprock (updated in 2010)
-  # Copyright:: Copyright (c) 2007 Six Fried Rice, LLC and Mufaddal Khumri
-  # License::   See MIT-LICENSE for details
   class RfmError < StandardError #:nodoc:
   end
   
@@ -31,6 +11,22 @@ module Rfm
   class AuthenticationError < RfmError #:nodoc:
   end
   
+  # FileMakerError is the base class for the error hierarchy.
+  # 
+  # One could raise a FileMakerError by doing:
+  #   raise Rfm::FileMakerError.get(102)
+  #
+  # It also takes an optional argument to give a more discriptive error message:
+  #   err = Rfm::FileMakerError.get(102, 'add description with more detail here')
+  # 
+  # The above code would return a FieldMissingError instance. Your could use this instance to raise that appropriate
+  # exception:
+  # 
+  #   raise err 
+  # 
+  # You could access the specific error code by accessing:
+  #   
+  #   err.code
   class FileMakerError < RfmError
     attr_accessor :code
     
