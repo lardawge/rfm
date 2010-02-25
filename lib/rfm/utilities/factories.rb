@@ -1,71 +1,61 @@
 # The classes in this module are used internally by Rfm and are not intended for outside
 # use.
-#
-# Author::    Geoff Coffey  (mailto:gwcoffey@gmail.com)
-# Copyright:: Copyright (c) 2007 Six Fried Rice, LLC and Mufaddal Khumri
-# License::   See MIT-LICENSE for details
-
 module Rfm
   autoload :Script, "rfm/utilities/script"
   
-  module Factories
-    class DbFactory < Rfm::CaseInsensitiveHash
+  module Factories #:nodoc: all
     
-      def initialize(server)
-        @server = server
+    class Factory < CaseInsensitiveHash
+      attr_accessor :server, :database
+      
+      def initialize(server, database=nil)
+        self.server = server
+        self.database = database
       end
       
-      def [](dbname)
-        super or (self[dbname] = Rfm::Database.new(dbname, @server))
+      def [](name)
+        super or (self[name] = instantiate_klass(name))
       end
       
       def all
-        Rfm::ResultSet.new(@server, @server.do_action(@server.options[:account_name], @server.options[:password], '-dbnames', {}).body).each do |record|
+        ResultSet.new(@server, @server.do_action(@server.options[:account_name], @server.options[:password], url_options, database_name).body).each do |record|
           name = record['database_name']
-          self[name] = Rfm::Database.new(name, @server) if self[name] == nil
+          self[name] = instantiate_klass(name) if self[name].nil?
         end
         self.values
+      end
+      
+    end
+    
+    class DbFactory < Factory
+      
+      def database_name; {}; end
+      def url_options; '-dbnames'; end
+      
+      def instantiate_klass(dbname)
+        Database.new(dbname, @server)
       end
     
     end
     
-    class LayoutFactory < Rfm::CaseInsensitiveHash
-    
-      def initialize(server, database)
-        @server = server
-        @database = database
-      end
+    class LayoutFactory < Factory
       
-      def [](layout_name)
-        super or (self[layout_name] = Rfm::Layout.new(layout_name, @database))
-      end
+      def database_name; {"-db" => @database.name}; end
+      def url_options; '-layoutnames';end
       
-      def all
-        Rfm::ResultSet.new(@server, @server.do_action(@server.options[:account_name], @server.options[:password], '-layoutnames', {"-db" => @database.name}).body).each do |record|
-          name = record['layout_name']
-          self[name] = Rfm::Layout.new(name, @database) if self[name] == nil
-        end
-        self.values
+      def instantiate_klass(layout_name)
+        Layout.new(layout_name, @database)
       end
     
     end
     
-    class ScriptFactory < Rfm::CaseInsensitiveHash
-      def initialize(server, database)
-        @server = server
-        @database = database
-      end
+    class ScriptFactory < Factory
       
-      def [](script_name)
-        super or (self[script_name] = Rfm::Script.new(script_name, @database))
-      end
+      def database_name; {"-db" => @database.name}; end
+      def url_options; '-scriptnames'; end
       
-      def all
-        Rfm::ResultSet.new(@server, @server.do_action(@server.options[:account_name], @server.options[:password], '-scriptnames', {"-db" => @database.name}).body).each do |record|
-          name = record['script_name']
-          self[name] = Rfm::Script.new(name, @database) if self[name] == nil
-        end
-        self.values
+      def instantiate_klass(script_name)
+        Script.new(script_name, @database)
       end
     
     end
