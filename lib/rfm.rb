@@ -206,7 +206,7 @@ path = File.expand_path(File.dirname(__FILE__))
 $:.unshift(path) unless $:.include?(path)
 
 module Rfm
-  class CaseInsensitiveHash < Hash
+  class CaseInsensitiveHash < Hash #:nodoc:
     def []=(key, value)
       super(key.downcase, value)
     end

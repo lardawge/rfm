@@ -19,16 +19,16 @@ module Rfm
   # Author::    Mufaddal Khumri, Larry Sprock (updated in 2010)
   # Copyright:: Copyright (c) 2007 Six Fried Rice, LLC and Mufaddal Khumri
   # License::   See MIT-LICENSE for details
-  class RfmError < StandardError
+  class RfmError < StandardError #:nodoc:
   end
   
-  class CommunicationError < RfmError
+  class CommunicationError < RfmError #:nodoc:
   end
   
-  class ParameterError < RfmError
+  class ParameterError < RfmError #:nodoc:
   end
   
-  class AuthenticationError < RfmError
+  class AuthenticationError < RfmError #:nodoc:
   end
   
   class FileMakerError < RfmError
@@ -97,96 +97,96 @@ module Rfm
         end
   end
   
-  class UnknownError < FileMakerError  
+  class UnknownError < FileMakerError #:nodoc:
   end
   
-  class SystemError < FileMakerError  
+  class SystemError < FileMakerError #:nodoc:
   end
   
-  class MissingError < FileMakerError  
+  class MissingError < FileMakerError  #:nodoc:
   end
   
-  class RecordMissingError < MissingError  
+  class RecordMissingError < MissingError #:nodoc:
   end
 
-  class FieldMissingError < MissingError  
+  class FieldMissingError < MissingError #:nodoc:
   end
 
-  class ScriptMissingError < MissingError  
+  class ScriptMissingError < MissingError #:nodoc: 
   end
 
-  class LayoutMissingError < MissingError  
+  class LayoutMissingError < MissingError #:nodoc: 
   end
 
-  class TableMissingError < MissingError  
+  class TableMissingError < MissingError #:nodoc:
   end
 
-  class SecurityError < FileMakerError  
+  class SecurityError < FileMakerError #:nodoc:
   end
   
-  class RecordAccessDeniedError < SecurityError  
+  class RecordAccessDeniedError < SecurityError #:nodoc:
   end
 
-  class FieldCannotBeModifiedError < SecurityError  
+  class FieldCannotBeModifiedError < SecurityError #:nodoc:
   end
 
-  class FieldAccessIsDeniedError < SecurityError  
+  class FieldAccessIsDeniedError < SecurityError #:nodoc:
   end
   
-  class ConcurrencyError < FileMakerError  
+  class ConcurrencyError < FileMakerError #:nodoc:
   end
   
-  class RecordInUseError < ConcurrencyError  
+  class RecordInUseError < ConcurrencyError #:nodoc:
   end
 
-  class TableInUseError < ConcurrencyError  
+  class TableInUseError < ConcurrencyError #:nodoc:
   end
 
-  class RecordModIdDoesNotMatchError < ConcurrencyError  
+  class RecordModIdDoesNotMatchError < ConcurrencyError #:nodoc:
   end
 
-  class GeneralError < FileMakerError  
+  class GeneralError < FileMakerError #:nodoc:
   end
 
-  class NoRecordsFoundError < GeneralError  
+  class NoRecordsFoundError < GeneralError #:nodoc:
   end
    
-  class ValidationError < FileMakerError  
+  class ValidationError < FileMakerError #:nodoc:
   end 
 
-  class DateValidationError < ValidationError  
+  class DateValidationError < ValidationError #:nodoc:
   end
 
-  class TimeValidationError < ValidationError  
+  class TimeValidationError < ValidationError #:nodoc:
   end
   
-  class NumberValidationError < ValidationError  
+  class NumberValidationError < ValidationError #:nodoc: 
   end
   
-  class RangeValidationError < ValidationError  
+  class RangeValidationError < ValidationError #:nodoc:
   end
 
-  class UniqueValidationError < ValidationError  
+  class UniqueValidationError < ValidationError #:nodoc:
   end
   
-  class ExistingValidationError < ValidationError  
+  class ExistingValidationError < ValidationError #:nodoc:
   end
 
-  class ValueListValidationError < ValidationError  
+  class ValueListValidationError < ValidationError #:nodoc:
   end
 
-  class ValidationCalculationError < ValidationError  
+  class ValidationCalculationError < ValidationError #:nodoc:
   end
 
-  class InvalidFindModeValueError < ValidationError  
+  class InvalidFindModeValueError < ValidationError #:nodoc:
   end
 
-  class MaximumCharactersValidationError < ValidationError  
+  class MaximumCharactersValidationError < ValidationError #:nodoc:
   end
 
-  class FileError < FileMakerError  
+  class FileError < FileMakerError #:nodoc:
   end 
 
-  class UnableToOpenFileError < FileError  
+  class UnableToOpenFileError < FileError #:nodoc:
   end
 end
