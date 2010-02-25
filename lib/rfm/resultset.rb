@@ -77,7 +77,7 @@ module Rfm
       
       check_for_errors(doc.search('error').attribute('code').value.to_i)
       
-      #seperate content
+      # seperate content sections
       metadata = doc.search('metadata')
       source   = doc.search('datasource')
       result   = doc.search('resultset')
@@ -95,7 +95,6 @@ module Rfm
       metadata.search('field-definition').each do |field|
         @fields[field['name']] = Field.new(self, field)
       end
-      @fields.freeze
       
       # process relatedset metadata
       metadata.search('relatedset-definition').each do |relatedset|
@@ -107,7 +106,6 @@ module Rfm
         end
         @portals[table] = fields
       end
-      @portals.freeze
       
       # build record rows
       result.search('record').each do |record|
