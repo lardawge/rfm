@@ -1,17 +1,17 @@
 = Rfm
 
 This version of rfm is a significant upgrade to rfm in a few ways. First and most important (to me anyway) is it allows for the use of secure connections and certificate files.
-Rfm 1.0.0 is broken in that way and does not allow for this. Second it has a few bug fixes that were never pushed to rfm 1.0.0. Last but not least is that the xml parser is
+Rfm 1.0.0 is broken and does not work as advertised. Second it has a few bug fixes that were never pushed to rfm 1.0.0. Last but not least is that the xml parser is
 switched to nokogiri which is a huge speed improvement over REXML (used in rfm 1.0.0) on large datasets.
 
-Rfm was primarily designed by Six Fried Rice co-founder Geoff Coffey.
+Rfm was originally designed by Six Fried Rice co-founder Geoff Coffey.
 
 Other lead contributors:
 
 - Mufaddal Khumri helped architect Rfm in the most ruby-like way possible. He also contributed the outstanding error handling code and a comprehensive hierarchy of error classes.
 - Atsushi Matsuo was an early Rfm tester, and provided outstanding feedback, critical code fixes, and a lot of web exposure.
 - Jesse Antunes helped ensure that Rfm is stable and functional.
-- Larry Sprock added ssl support and switched the xml parser to a much faster Nokogiri.
+- Larry Sprock added ssl support and switched the xml parser to a much faster Nokogiri and is at this point the primary maintainer. Since 1.0 it has gone through some major rewrites and refactoring in an effort to make it lean and mean... also to satisfy my own coding curiosities.
 
 Rdoc location: http://rdoc.info/projects/lardawge/rfm
 
@@ -32,10 +32,10 @@ Once the gem is installed, you can use rfm in your ruby scripts by requiring it:
 
 == Connecting
 
-IMPORTANT:SSL and Certificate verification are on by default. Please see Server#new in rdocs for explanation and setup.
+IMPORTANT:SSL and Certificate verification are on by default. Please see Rfm::Server for explanation and setup.
 You connect with the Rfm::Server object. This little buddy will be your window into FileMaker data.
 
-  require 'rfm/rfm'
+  require 'rfm'
 
   my_server = Rfm::Server.new(
     :host => 'myservername',
@@ -64,7 +64,7 @@ Finally, if you want to introspect the server and find out what databases are av
 
   all_dbs = my_server.databases
 
-In any case, you get back Rfm::Database objects. A database object in turn has a property called "layout":
+In any case, you get back Rfm::Database objects. A database object in turn has a layout method.
 
   my_layout = my_db.layout("My Layout")
 
@@ -76,7 +76,7 @@ Bringing it all together, you can do this to go straight from a server to a spec
 
   my_layout = my_server.db("My Database").layout("My Layout")
 
-NOTE: for the ruby experts, Rfm::Server#db is an Rfm::Factory::DatabaseFactory object, which is just a fancied up Hash. So anything you can do with a hash, you can also do with my_server.db. The same goes for my_db.layouts, which is an Rfm::Factory::LayoutFactory.
+NOTE: for the ruby experts, Rfm::Server#db is an Rfm::DatabaseFactory object, which is just a fancied up Hash. So anything you can do with a hash, you can also do with my_server.db. The same goes for my_db.layouts, which is an Rfm::LayoutFactory.
 
 
 == Working with Layouts
