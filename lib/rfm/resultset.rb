@@ -30,8 +30,7 @@ module Rfm
   #   it provides metadata about the portals in the ResultSet and the Fields on those portals
 
   class ResultSet < Array
-    attr_accessor :server, :fields, :portals, :date_format, :time_format, :timestamp_format, :total_count, :foundset_count, :layout
-    attr_writer :resultset
+    attr_reader :server, :fields, :portals, :date_format, :time_format, :timestamp_format, :total_count, :foundset_count, :layout
     
     # Initializes a new ResultSet object. You will probably never do this your self (instead, use the Layout
     # object to get various ResultSet obejects).
@@ -56,15 +55,15 @@ module Rfm
     #   after, you want to look at the Record object.
     
     def initialize(server, fm_data, layout=nil)
-      self.server = server
-      self.layout = layout
-      self.fields = CaseInsensitiveHash.new
-      self.portals = CaseInsensitiveHash.new
-      self.date_format = nil
-      self.time_format = nil
-      self.timestamp_format = nil
-      self.total_count = nil
-      self.foundset_count = nil
+      @server = server
+      @layout = layout
+      @fields = CaseInsensitiveHash.new
+      @portals = CaseInsensitiveHash.new
+      @date_format = nil
+      @time_format = nil
+      @timestamp_format = nil
+      @total_count = nil
+      @foundset_count = nil
       
       doc = Nokogiri.XML(fm_data)
       

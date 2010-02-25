@@ -119,7 +119,7 @@ module Rfm
   #   list that is attached to any field on the layout
   
   class Layout
-    attr_accessor :name, :db
+    attr_reader :name, :db
     
     # Initialize a layout object. You never really need to do this. Instead, just do this:
     # 
@@ -136,8 +136,8 @@ module Rfm
     #   my_layout = my_server.db("Customers").layout("Details")
     
     def initialize(name, db)
-      self.name = name
-      self.db = db
+      @name = name
+      @db = db
     end
     
     def field_controls

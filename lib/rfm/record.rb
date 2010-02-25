@@ -94,6 +94,7 @@ module Rfm
   #   changes so you can tell if the Record object you're looking at is up-to-date as compared to another
   #   copy of the same record
   class Record < CaseInsensitiveHash
+    attr_reader :record_id, :mod_id, :portals
     
     # Initializes a Record object. You really really never need to do this yourself. Instead, get your records
     # from a ResultSet object.
@@ -136,8 +137,6 @@ module Rfm
       end
       @loaded = true
     end
-    
-    attr_reader :record_id, :mod_id, :portals
 
     # Saves local changes to the Record object back to Filemaker. For example:
     #

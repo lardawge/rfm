@@ -6,11 +6,10 @@ module Rfm
   module Factories #:nodoc: all
     
     class Factory < CaseInsensitiveHash
-      attr_accessor :server, :database
       
       def initialize(server, database=nil)
-        self.server = server
-        self.database = database
+        @server = server
+        @database = database
       end
       
       def [](name)

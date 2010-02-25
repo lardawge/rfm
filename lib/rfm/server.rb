@@ -100,7 +100,7 @@ module Rfm
   #
   # * *server* is the Server object this database comes from
   # * *name* is the name of this database
-  # * *state* is a hash of all server options used to initialize this server
+  # * *options* is a hash of all server options used to initialize this server
   class Server
     #
     # To create a Server object, you typically need at least a host name:
@@ -188,10 +188,11 @@ module Rfm
     #            :root_cert_path => '/usr/cert_file/'
     #            )
     
-    attr_accessor :database, :host_name, :port, :scheme, :options
+    attr_reader :options
+    
     
     def initialize(user_options={})
-      self.options = {
+      @options = {
         :host => 'localhost',
         :port => 80,
         :ssl => true,
@@ -206,11 +207,11 @@ module Rfm
         :raise_on_401 => false
       }.merge(user_options)
     
-      self.host_name = self.options[:host]
-      self.scheme    = self.options[:ssl] ? "https" : "http"
-      self.port      = self.options[:ssl] && user_options[:port].nil? ? 443 : self.options[:port]
+      @host_name = self.options[:host]
+      @scheme    = self.options[:ssl] ? "https" : "http"
+      @port      = self.options[:ssl] && user_options[:port].nil? ? 443 : self.options[:port]
       
-      self.database = Factories::DbFactory.new(self)
+      @database = Factories::DbFactory.new(self)
     end
     
     # Access the database object representing a database on the server. For example:
@@ -230,7 +231,7 @@ module Rfm
     end
     
     def db(dbname)
-      self.database[dbname]
+      @database[dbname]
     end
     
     #TODO remove for next major release

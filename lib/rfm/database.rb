@@ -54,7 +54,8 @@ module Rfm
   # * *name* is the name of this database
   # * *options* is a hash of all server options used to initialize this server
   class Database
-    attr_accessor :server, :name, :account_name, :password, :fm_layout, :script
+    attr_reader :server, :name, :account_name, :password, :fm_layout, :script
+    attr_writer :account_name, :password
     
     # Initialize a database object. You never really need to do this. Instead, just do this:
     # 
@@ -63,12 +64,12 @@ module Rfm
     #
     # This sample code gets a database object representing the Customers database on the FileMaker server.
     def initialize(name, server)
-      self.name = name
-      self.server = server
-      self.account_name = server.options[:account_name] || ""
-      self.password = server.options[:password] || ""
-      self.fm_layout = Factories::LayoutFactory.new(server, self)
-      self.script = Factories::ScriptFactory.new(server, self)
+      @name = name
+      @server = server
+      @account_name = server.options[:account_name] || ""
+      @password = server.options[:password] || ""
+      @fm_layout = Factories::LayoutFactory.new(server, self)
+      @script = Factories::ScriptFactory.new(server, self)
     end
 
     # Access the Layout object representing a layout in this database. For example:
@@ -83,7 +84,7 @@ module Rfm
     # get no error at this point if the layout you specify doesn't exist. Instead, you'll
     # receive an error when you actually try to perform some action it.
     def layout(name)
-      self.fm_layout[name]
+      @fm_layout[name]
     end
     
     #TODO remove in next major release.
