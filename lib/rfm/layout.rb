@@ -218,9 +218,16 @@ module Rfm
     end
     
     private
+      
+      def load_layout
+        post = {'-db' => @db.name, '-lay' => @name, '-view' => ''}
+        host = @db.server.options[:host]
+        port = @db.server.options[:port]
+        @db.server.http_fetch(host, port, "/fmi/xml/FMPXMLLAYOUT.xml", @db.account_name, @db.password, post)
+      end
     
       def load_layout_data
-        doc = Nokogiri.XML(@db.server.load_layout(self).body)
+        doc = Nokogiri.XML(load_layout.body)
 
         # check for errors
         error = doc.search('ERRORCODE').text.to_i

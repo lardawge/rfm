@@ -102,7 +102,8 @@ module Rfm
   # * *name* is the name of this database
   # * *options* is a hash of all server options used to initialize this server
   class Server
-    #
+    attr_reader :options
+
     # To create a Server object, you typically need at least a host name:
     # 
     #   my_server = Rfm::Server.new(:host => 'my.host.com')
@@ -188,9 +189,6 @@ module Rfm
     #            :root_cert_path => '/usr/cert_file/'
     #            )
     
-    attr_reader :options
-    
-    
     def initialize(user_options={})
       @options = {
         :host => 'localhost',
@@ -207,9 +205,8 @@ module Rfm
         :raise_on_401 => false
       }.merge(user_options)
     
-      @host_name = self.options[:host]
-      @scheme    = self.options[:ssl] ? "https" : "http"
-      @port      = self.options[:ssl] && user_options[:port].nil? ? 443 : self.options[:port]
+      @scheme         = @options[:ssl] ? "https" : "http"
+      @options[:port] = @options[:ssl] && user_options[:port].nil? ? 443 : @options[:port]
       
       @database = Factories::DbFactory.new(self)
     end
@@ -269,68 +266,63 @@ module Rfm
     #   )
     def do_action(account_name, password, action, args, options = {})
       post = args.merge(expand_options(options)).merge({action => ''})
-      http_fetch(@host_name, @port, "/fmi/xml/fmresultset.xml", account_name, password, post)
+      http_fetch(@options[:host], @options[:port], "/fmi/xml/fmresultset.xml", account_name, password, post)
     end
     
-    def load_layout(layout)
-      post = {'-db' => layout.db.name, '-lay' => layout.name, '-view' => ''}
-      http_fetch(@host_name, @port, "/fmi/xml/FMPXMLLAYOUT.xml", layout.db.account_name, layout.db.password, post)
+    def http_fetch(host_name, port, path, account_name, password, post_data, limit=10)
+      raise CommunicationError.new("While trying to reach the Web Publishing Engine, RFM was redirected too many times.") if limit == 0
+    
+      if @options[:log_actions]
+        qs = post_data.collect { |key,value| "#{CGI::escape(key.to_s)}=#{CGI::escape(value.to_s)}" }.join("&")
+        warn "#{@scheme}://#{@options[:host]}:#{@options[:port]}#{path}?#{qs}"
+      end
+    
+      request = Net::HTTP::Post.new(path)
+      request.basic_auth(account_name, password)
+      request.set_form_data(post_data)
+    
+      response = Net::HTTP.new(host_name, port)
+    
+      if @options[:ssl]
+        response.use_ssl = true
+        if @options[:root_cert]
+          response.verify_mode = OpenSSL::SSL::VERIFY_PEER
+          response.ca_file = File.join(@options[:root_cert_path], @options[:root_cert_name])
+        else
+          response.verify_mode = OpenSSL::SSL::VERIFY_NONE
+        end
+      end
+
+      response = response.start { |http| http.request(request) }
+    
+      if @options[:log_responses]
+        response.to_hash.each { |key, value| warn "#{key}: #{value}" }
+        warn response.body
+      end
+    
+      case response
+      when Net::HTTPSuccess
+        response
+      when Net::HTTPRedirection
+        if @options[:warn_on_redirect]
+          warn "The web server redirected to " + response['location'] + 
+          ". You should revise your connection hostname or fix your server configuration if possible to improve performance."
+        end
+        newloc = URI.parse(response['location'])
+        http_fetch(newloc.host, newloc.port, newloc.request_uri, account_name, password, post_data, limit - 1)
+      when Net::HTTPUnauthorized
+        msg = "The account name (#{account_name}) or password provided is not correct (or the account doesn't have the fmxml extended privilege)."
+        raise AuthenticationError.new(msg)
+      when Net::HTTPNotFound
+        msg = "Could not talk to FileMaker because the Web Publishing Engine is not responding (server returned 404)."
+        raise CommunicationError.new(msg)
+      else
+        msg = "Unexpected response from server: #{result.code} (#{result.class.to_s}). Unable to communicate with the Web Publishing Engine."
+        raise CommunicationError.new(msg)
+      end
     end
     
     private
-    
-      def http_fetch(host_name, port, path, account_name, password, post_data, limit=10)
-        raise Error::CommunicationError.new("While trying to reach the Web Publishing Engine, RFM was redirected too many times.") if limit == 0
-    
-        if @options[:log_actions]
-          qs = post_data.collect { |key,value| "#{CGI::escape(key.to_s)}=#{CGI::escape(value.to_s)}" }.join("&")
-          warn "#{@scheme}://#{@host_name}:#{@port}#{path}?#{qs}"
-        end
-    
-        request = Net::HTTP::Post.new(path)
-        request.basic_auth(account_name, password)
-        request.set_form_data(post_data)
-    
-        response = Net::HTTP.new(host_name, port)
-    
-        if @options[:ssl]
-          response.use_ssl = true
-          if @options[:root_cert]
-            response.verify_mode = OpenSSL::SSL::VERIFY_PEER
-            response.ca_file = File.join(@options[:root_cert_path], @options[:root_cert_name])
-          else
-            response.verify_mode = OpenSSL::SSL::VERIFY_NONE
-          end
-        end
-    
-        response = response.start { |http| http.request(request) }
-    
-        if @options[:log_responses]
-          response.to_hash.each { |key, value| warn "#{key}: #{value}" }
-          warn response.body
-        end
-    
-        case response
-        when Net::HTTPSuccess
-          response
-        when Net::HTTPRedirection
-          if @options[:warn_on_redirect]
-            warn "The web server redirected to " + response['location'] + 
-            ". You should revise your connection hostname or fix your server configuration if possible to improve performance."
-          end
-          newloc = URI.parse(response['location'])
-          http_fetch(newloc.host, newloc.port, newloc.request_uri, account_name, password, post_data, limit - 1)
-        when Net::HTTPUnauthorized
-          msg = "The account name (#{account_name}) or password provided is not correct (or the account doesn't have the fmxml extended privilege)."
-          raise Error::AuthenticationError.new(msg)
-        when Net::HTTPNotFound
-          msg = "Could not talk to FileMaker because the Web Publishing Engine is not responding (server returned 404)."
-          raise Error::CommunicationError.new(msg)
-        else
-          msg = "Unexpected response from server: #{result.code} (#{result.class.to_s}). Unable to communicate with the Web Publishing Engine."
-          raise Error::CommunicationError.new(msg)
-        end
-      end
     
       def expand_options(options)
         result = {}
@@ -342,14 +334,14 @@ module Rfm
             result['-skip'] = value
           when :sort_field
             if value.kind_of? Array
-              raise Error::ParameterError.new(":sort_field can have at most 9 fields, but you passed an array with #{value.size} elements.") if value.size > 9
+              raise ParameterError.new(":sort_field can have at most 9 fields, but you passed an array with #{value.size} elements.") if value.size > 9
               value.each_index { |i| result["-sortfield.#{i+1}"] = value[i] }
             else
               result["-sortfield.1"] = value
             end
           when :sort_order
             if value.kind_of? Array
-              raise Error::ParameterError.new(":sort_order can have at most 9 fields, but you passed an array with #{value.size} elements.") if value.size > 9
+              raise ParameterError.new(":sort_order can have at most 9 fields, but you passed an array with #{value.size} elements.") if value.size > 9
               value.each_index { |i| result["-sortorder.#{i+1}"] = value[i] }
             else
               result["-sortorder.1"] = value
