@@ -1,15 +1,4 @@
 module Rfm
-  class RfmError < StandardError #:nodoc:
-  end
-  
-  class CommunicationError < RfmError #:nodoc:
-  end
-  
-  class ParameterError < RfmError #:nodoc:
-  end
-  
-  class AuthenticationError < RfmError #:nodoc:
-  end
   
   # FileMakerError is the base class for the error hierarchy.
   # 

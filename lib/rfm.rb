@@ -206,6 +206,19 @@ path = File.expand_path(File.dirname(__FILE__))
 $:.unshift(path) unless $:.include?(path)
 
 module Rfm
+  
+  class RfmError < StandardError #:nodoc:
+  end
+  
+  class CommunicationError < RfmError #:nodoc:
+  end
+  
+  class ParameterError < RfmError #:nodoc:
+  end
+  
+  class AuthenticationError < RfmError #:nodoc:
+  end
+  
   class CaseInsensitiveHash < Hash #:nodoc:
     def []=(key, value)
       super(key.downcase, value)
