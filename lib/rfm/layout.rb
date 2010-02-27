@@ -132,8 +132,7 @@ module Rfm
     # 
     # In case it isn't obvious, this is more easily expressed this way:
     #
-    #   my_server = Rfm::Server.new(...)
-    #   my_layout = my_server.db("Customers").layout("Details")
+    #   my_layout = Rfm::Server.new(...).db("Customers").layout("Details")
     
     def initialize(name, db)
       @name = name
@@ -269,11 +268,8 @@ module Rfm
       
       def get_records(action, extra_params = {}, options = {})
         ResultSet.new(@db.server, @db.server.do_action(@db.account_name, 
-        @db.password, action, params().merge(extra_params), options).body, self)
+        @db.password, action, {"-db" => @db.name, "-lay" => self.name}.merge(extra_params), options).body, self)
       end
-      
-      def params
-        {"-db" => @db.name, "-lay" => self.name}
-      end
+    
   end
 end
