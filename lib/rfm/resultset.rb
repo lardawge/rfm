@@ -33,7 +33,7 @@ module Rfm
     attr_reader :server, :fields, :portals, :date_format, :time_format, :timestamp_format, :total_count, :foundset_count, :layout
     
     # Initializes a new ResultSet object. You will probably never do this your self (instead, use the Layout
-    # object to get various ResultSet obejects).
+    # object to get various ResultSet objects).
     #
     # If you feel so inclined, though, pass a Server object, and some +fmpxmlresult+ compliant XML in a String.
     #
@@ -67,32 +67,32 @@ module Rfm
       
       doc = Nokogiri.XML(fm_data)
       
-      check_for_errors(doc.search('error').attribute('code').value.to_i)
+      check_for_errors(doc.css('error').attribute('code').value.to_i)
       
       # seperate content sections
-      metadata = doc.search('metadata')
-      source   = doc.search('datasource')
-      result   = doc.search('resultset')
+      metadata = doc.css('metadata')
+      source   = doc.css('datasource')
+      result   = doc.css('resultset')
       
       # ascertain date and time formats
-      @date_format      = convertFormatString(source.attribute('date-format').value)
-      @time_format      = convertFormatString(source.attribute('time-format').value)
-      @timestamp_format = convertFormatString(source.attribute('timestamp-format').value)
+      @date_format      = convert_format_string(source.attribute('date-format').value)
+      @time_format      = convert_format_string(source.attribute('time-format').value)
+      @timestamp_format = convert_format_string(source.attribute('timestamp-format').value)
       
       # retrieve count
       @foundset_count = result.attribute('count').value.to_i
       @total_count    = source.attribute('total-count').value.to_i
       
       # process field metadata
-      metadata.search('field-definition').each do |field|
+      metadata.css('field-definition').each do |field|
         @fields[field['name']] = Field.new(self, field)
       end
       
       # process relatedset metadata
-      metadata.search('relatedset-definition').each do |relatedset|
+      metadata.css('relatedset-definition').each do |relatedset|
         table  = relatedset.attribute('table').value
         fields = Hash.new
-        relatedset.search('field-definition').each do |field|
+        relatedset.css('field-definition').each do |field|
           name = field.attribute('name').value.sub(Regexp.new(table + '::'), '')
           fields[name] = Field.new(self, field)
         end
@@ -100,7 +100,7 @@ module Rfm
       end
       
       # build record rows
-      result.search('record').each do |record|
+      result.css('record').each do |record|
         self << Record.new(record, self, @fields, @layout)
       end
     end  
@@ -108,10 +108,10 @@ module Rfm
     private
     
       def check_for_errors(error_code)
-        raise FileMakerError.get_error(error_code) if error_code != 0 && (error_code != 401 || @server.options[:raise_on_401])
+        raise FileMakerError.get(error_code) if error_code != 0 && (error_code != 401 || @server.options[:raise_on_401])
       end
     
-      def convertFormatString(fm_format)
+      def convert_format_string(fm_format)
         fm_format.gsub('MM', '%m').gsub('dd', '%d').gsub('yyyy', '%Y').gsub('HH', '%H').gsub('mm', '%M').gsub('ss', '%S')
       end
     

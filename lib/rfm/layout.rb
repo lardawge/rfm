@@ -230,7 +230,7 @@ module Rfm
 
         # check for errors
         error = doc.search('ERRORCODE').text.to_i
-        raise FileMakerError.get_error(error) if error != 0
+        raise FileMakerError.get(error) if error != 0
         
         value_lists = doc.search('VALUELISTS')
         layouts = doc.search('LAYOUT')

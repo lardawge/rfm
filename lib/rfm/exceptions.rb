@@ -21,8 +21,8 @@ module Rfm
     
     # This method instantiates and returns the appropriate FileMakerError object depending on the error code passed to it. It
     # also accepts an optional message.
-    def self.get(code, error_message=nil)
-      error = error_message(code, error_message)
+    def self.get(code, message=nil)
+      error = instantiate_error(find_error_by_code(code), cource_message(code, message))
       error.code = code
       return error
     end
@@ -33,53 +33,59 @@ module Rfm
       get(code, message)
     end
     
-    private
-       
-        def self.error_message(code, custom_message)
-          message = custom_message.nil? ? "occurred: (FileMaker Error ##{code})" : "occured: #{custom_message} (FileMaker Error ##{code})"
-          case code
-          when 0..99
-            SystemError.new("SystemError #{message}")
-          when 100..199
-            if code == 101; RecordMissingError.new("RecordMissingError #{message}")
-            elsif code == 102; FieldMissingError.new("FieldMissingError #{message}")
-            elsif code == 104; ScriptMissingError.new("ScriptMissingError #{message}")
-            elsif code == 105; LayoutMissingError.new("LayoutMissingError #{message}")
-            elsif code == 106; TableMissingError.new("TableMissingError #{message}")
-            else; MissingError.new("MissingError #{message}"); end
-          when 203..299
-            if code == 200; RecordAccessDeniedError.new("RecordAccessDeniedError #{message}")
-            elsif code == 201; FieldCannotBeModifiedError.new("FieldCannotBeModifiedError #{message}")
-            elsif code == 202; FieldAccessIsDeniedError.new("FieldAccessIsDeniedError #{message}")
-            else; SecurityError.new("SecurityError #{message}"); end
-          when 300..399
-            if code == 301; RecordInUseError.new("RecordInUseError #{message}")
-            elsif code == 302; TableInUseError.new("TableInUseError #{message}")
-            elsif code == 306; RecordModIdDoesNotMatchError.new("RecordModIdDoesNotMatchError #{message}")
-            else; ConcurrencyError.new("ConcurrencyError #{message}"); end
-          when 400..499
-           if code == 401; NoRecordsFoundError.new("NoRecordsFoundError #{message}")
-           else; GeneralError.new("GeneralError #{message}"); end
-          when 500..599
-            if code == 500; DateValidationError.new("DateValidationError #{message}")
-            elsif code == 501; TimeValidationError.new("TimeValidationError #{message}")
-            elsif code == 502; NumberValidationError.new("NumberValidationError #{message}")
-            elsif code == 503; RangeValidationError.new("RangeValidationError #{message}")
-            elsif code == 504; UniqueValidationError.new("UniqueValidationError #{message}")
-            elsif code == 505; ExistingValidationError.new("ExistingValidationError #{message}")
-            elsif code == 506; ValueListValidationError.new("ValueListValidationError #{message}")
-            elsif code == 507; ValidationCalculationError.new("ValidationCalculationError #{message}")
-            elsif code == 508; InvalidFindModeValueError.new("InvalidFindModeValueError #{message}")
-            elsif code == 511; MaximumCharactersValidationError.new("MaximumCharactersValidationError #{message}")
-            else; ValidationError.new("ValidationError #{message}")
-            end
-          when 800..899
-            if code == 802; UnableToOpenFileError.new("UnableToOpenFileError #{message}")
-            else; FileError.new("FileError #{message}"); end
-          else
-            UnknownError.new("UnknownError #{message}")
-          end
+    def self.cource_message(code, message=nil) #:nodoc:
+      message = message << " " unless message.nil?
+      ": #{message}(FileMaker Error ##{code})"
+    end
+    
+    def self.find_error_by_code(code) #:nodoc:
+      case code
+      when 0..99
+        SystemError
+      when 100..199
+        if code == 101; RecordMissingError
+        elsif code == 102; FieldMissingError
+        elsif code == 104; ScriptMissingError
+        elsif code == 105; LayoutMissingError
+        elsif code == 106; TableMissingError
+        else; MissingError; end
+      when 203..299
+        if code == 200; RecordAccessDeniedError
+        elsif code == 201; FieldCannotBeModifiedError
+        elsif code == 202; FieldAccessIsDeniedError
+        else; SecurityError; end
+      when 300..399
+        if code == 301; RecordInUseError
+        elsif code == 302; TableInUseError
+        elsif code == 306; RecordModIdDoesNotMatchError
+        else; ConcurrencyError; end
+      when 400..499
+       if code == 401; NoRecordsFoundError
+       else; GeneralError; end
+      when 500..599
+        if code == 500; DateValidationError
+        elsif code == 501; TimeValidationError
+        elsif code == 502; NumberValidationError
+        elsif code == 503; RangeValidationError
+        elsif code == 504; UniqueValidationError
+        elsif code == 505; ExistingValidationError
+        elsif code == 506; ValueListValidationError
+        elsif code == 507; ValidationCalculationError
+        elsif code == 508; InvalidFindModeValueError
+        elsif code == 511; MaximumCharactersValidationError
+        else; ValidationError
         end
+      when 800..899
+        if code == 802; UnableToOpenFileError
+        else; FileError; end
+      else
+        UnknownError
+      end
+    end
+    
+    def self.instantiate_error(klass, message) #:nodoc:
+      klass.new("#{klass.to_s.gsub(/Rfm::/, '')} occurred#{message}")
+    end
   end
   
   class UnknownError < FileMakerError #:nodoc:
