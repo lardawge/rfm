@@ -9,7 +9,7 @@ module Rfm
       
       def initialize(server, database=nil)
         @server = server
-        @database = database
+        @database = database.nil? ? {} : { '-db' => database.name }
       end
       
       def [](name)
@@ -18,7 +18,7 @@ module Rfm
       
       def all
         set_options
-        ResultSet.new(@server, @server.do_action(@server.options[:account_name], @server.options[:password], @url_options, @database.nil? ? {} : { '-db' => @database.name }).body).each do |record|
+        ResultSet.new(@server, @server.do_action(@server.options[:account_name], @server.options[:password], @url_options, @database).body).each do |record|
           name = record[@hash_key]
           self[name] = instantiate_klass(name) if self[name].nil?
         end
