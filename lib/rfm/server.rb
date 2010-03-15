@@ -208,7 +208,7 @@ module Rfm
       @scheme         = @options[:ssl] ? "https" : "http"
       @options[:port] = @options[:ssl] && user_options[:port].nil? ? 443 : @options[:port]
       
-      @database = Factories::DbFactory.new(self)
+      @db = Factories::DbFactory.new(self)
     end
     
     # Access the database object representing a database on the server. For example:
@@ -224,11 +224,12 @@ module Rfm
     # receive an error when you actually try to perform some action on a layout from this
     # database.
     def databases
-      @database.all
+      @db.all
     end
     
-    def db(dbname)
-      @database[dbname]
+    def db(name=nil)
+      return @db if name.nil?
+      @db[name]
     end
     
     #TODO remove for next major release
