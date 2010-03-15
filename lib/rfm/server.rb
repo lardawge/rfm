@@ -223,19 +223,17 @@ module Rfm
     # get no error at this point if the database you access doesn't exist. Instead, you'll
     # receive an error when you actually try to perform some action on a layout from this
     # database.
-    def databases
-      @db.all
-    end
-    
     def db(name=nil)
       return @db if name.nil?
       @db[name]
     end
     
-    #TODO remove for next major release
-    def [](dbname) # :nodoc:
-      warn "#[] is deprecated, use #db() instead"
+    def [](dbname)
       db(dbname)
+    end
+    
+    def databases
+      @db.all
     end
     
     # Performs a raw FileMaker action. You will generally not call this method directly, but it
