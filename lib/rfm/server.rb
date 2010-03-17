@@ -136,19 +136,12 @@ module Rfm
     #
     #SSL Options (SSL AND CERTIFICATE VERIFICATION ARE ON BY DEFAULT):
     #
-    # * *ssl* +false+ if you want to turn SSL (HTTPS) off when connecting to connect to FileMaker (default is +true+)
+    # * *ssl* +false+ if you want to turn SSL (HTTPS) off when connecting to FileMaker (default is +true+)
     #
     # If you are using SSL and want to verify the certificate use the following options:
     #
-    # * *root_cert* +false+ if you do not want to verify your SSL session (default is +true+). 
-    #   You will want to turn this off if you are using a self signed certificate and do not have a certificate authority cert file.
-    #   If you choose this option you will need to provide a cert *root_cert_name* and *root_cert_path* (if not in root directory).
-    #
-    # * *root_cert_name* name of pem file for certificate verification (Root cert from certificate authority who issued certificate.
-    #   If self signed certificate do not use this option!!). You can download the entire bundle of CA Root Certificates
-    #   from http://curl.haxx.se/ca/cacert.pem. Place the pem file in config directory.
-    #
-    # * *root_cert_path* path to cert file. (defaults to '/' if no path given)
+    # * *pem* full path to pem file or false to turn certificate verification off. (Root cert from certificate authority who issued certificate.
+    #   If self signed certificate do not use this option!!).
     #
     #Configuration Examples:    
     #
@@ -161,54 +154,27 @@ module Rfm
     #           :ssl => false 
     #           )
     #           
-    # Example using SSL without *root_cert*:
+    # Example using SSL without verification:
     #           
     #   my_server = Rfm::Server.new(
     #           :host => 'localhost',
     #           :account_name => 'sample',
-    #           :password => '12345',
-    #           :root_cert => false 
+    #           :password => '12345'
+    #           :pem => false
     #           )
     #           
-    # Example using SSL with *root_cert* at file root:
+    # Example using SSL with cert verification:
     # 
     #   my_server = Rfm::Server.new(
     #            :host => 'localhost',
     #            :account_name => 'sample',
     #            :password => '12345',
-    #            :root_cert_name => 'example.pem' 
-    #            )
-    #            
-    # Example using SSL with *root_cert* specifying *root_cert_path*:
-    # 
-    #   my_server = Rfm::Server.new(
-    #            :host => 'localhost',
-    #            :account_name => 'sample',
-    #            :password => '12345',
-    #            :root_cert_name => 'example.pem'
-    #            :root_cert_path => '/usr/cert_file/'
+    #            :pem => '/cert/example.pem' 
     #            )
     
-    def initialize(user_options={})
-      @options = {
-        :host => 'localhost',
-        :port => 80,
-        :ssl => true,
-        :root_cert => true,
-        :root_cert_name => '',
-        :root_cert_path => '/',
-        :account_name => '',
-        :password => '',
-        :log_actions => false,
-        :log_responses => false,
-        :warn_on_redirect => true,
-        :raise_on_401 => false
-      }.merge(user_options)
-    
-      @scheme         = @options[:ssl] ? "https" : "http"
-      @options[:port] = @options[:ssl] && user_options[:port].nil? ? 443 : @options[:port]
-      
-      @db = Factories::DbFactory.new(self)
+    def initialize(options={})
+      @options = Rfm.options(options)
+      @db      = Factories::DbFactory.new
     end
     
     # Access the database object representing a database on the server. For example:
@@ -228,156 +194,13 @@ module Rfm
       @db[name]
     end
     
-    def [](dbname)
-      db(dbname)
+    def [](name)
+      db(name)
     end
     
     def databases
       @db.all
     end
-    
-    # Performs a raw FileMaker action. You will generally not call this method directly, but it
-    # is exposed in case you need to do something "under the hood."
-    # 
-    # The +action+ parameter is any valid FileMaker web url action. For example, +-find+, +-finadny+ etc.
-    #
-    # The +args+ parameter is a hash of arguments to be included in the action url. It will be serialized
-    # and url-encoded appropriately.
-    #
-    # The +options+ parameter is a hash of RFM-specific options, which correspond to the more esoteric
-    # FileMaker URL parameters. They are exposed separately because they can also be passed into
-    # various methods on the Layout object, which is a much more typical way of sending an action to
-    # FileMaker.
-    #
-    # This method returns the Net::HTTP response object representing the response from FileMaker.
-    #
-    # For example, if you wanted to send a raw command to FileMaker to find the first 20 people in the
-    # "Customers" database whose first name is "Bill" you might do this:
-    #
-    #   response = myServer.do_action(
-    #     '-find',
-    #     {
-    #       "-db" => "Customers",
-    #       "-lay" => "Details",
-    #       "First Name" => "Bill"
-    #     },
-    #     { :max_records => 20 }
-    #   )
-    def do_action(account_name, password, action, args, options = {})
-      post = args.merge(expand_options(options)).merge({action => ''})
-      http_fetch(@options[:host], @options[:port], "/fmi/xml/fmresultset.xml", account_name, password, post)
-    end
-    
-    def http_fetch(host_name, port, path, account_name, password, post_data, limit=10)
-      raise CommunicationError.new("While trying to reach the Web Publishing Engine, RFM was redirected too many times.") if limit == 0
-    
-      if @options[:log_actions]
-        qs = post_data.collect { |key,value| "#{CGI::escape(key.to_s)}=#{CGI::escape(value.to_s)}" }.join("&")
-        warn "#{@scheme}://#{@options[:host]}:#{@options[:port]}#{path}?#{qs}"
-      end
-    
-      request = Net::HTTP::Post.new(path)
-      request.basic_auth(account_name, password)
-      request.set_form_data(post_data)
-    
-      response = Net::HTTP.new(host_name, port)
-    
-      if @options[:ssl]
-        response.use_ssl = true
-        if @options[:root_cert]
-          response.verify_mode = OpenSSL::SSL::VERIFY_PEER
-          response.ca_file = File.join(@options[:root_cert_path], @options[:root_cert_name])
-        else
-          response.verify_mode = OpenSSL::SSL::VERIFY_NONE
-        end
-      end
-
-      response = response.start { |http| http.request(request) }
-    
-      if @options[:log_responses]
-        response.to_hash.each { |key, value| warn "#{key}: #{value}" }
-        warn response.body
-      end
-    
-      case response
-      when Net::HTTPSuccess
-        response
-      when Net::HTTPRedirection
-        if @options[:warn_on_redirect]
-          warn "The web server redirected to " + response['location'] + 
-          ". You should revise your connection hostname or fix your server configuration if possible to improve performance."
-        end
-        newloc = URI.parse(response['location'])
-        http_fetch(newloc.host, newloc.port, newloc.request_uri, account_name, password, post_data, limit - 1)
-      when Net::HTTPUnauthorized
-        msg = "The account name (#{account_name}) or password provided is not correct (or the account doesn't have the fmxml extended privilege)."
-        raise AuthenticationError.new(msg)
-      when Net::HTTPNotFound
-        msg = "Could not talk to FileMaker because the Web Publishing Engine is not responding (server returned 404)."
-        raise CommunicationError.new(msg)
-      else
-        msg = "Unexpected response from server: #{result.code} (#{result.class.to_s}). Unable to communicate with the Web Publishing Engine."
-        raise CommunicationError.new(msg)
-      end
-    end
-    
-    private
-    
-      def expand_options(options)
-        result = {}
-        options.each do |key,value|
-          case key
-          when :max_records
-            result['-max'] = value
-          when :skip_records
-            result['-skip'] = value
-          when :sort_field
-            if value.kind_of? Array
-              raise ParameterError.new(":sort_field can have at most 9 fields, but you passed an array with #{value.size} elements.") if value.size > 9
-              value.each_index { |i| result["-sortfield.#{i+1}"] = value[i] }
-            else
-              result["-sortfield.1"] = value
-            end
-          when :sort_order
-            if value.kind_of? Array
-              raise ParameterError.new(":sort_order can have at most 9 fields, but you passed an array with #{value.size} elements.") if value.size > 9
-              value.each_index { |i| result["-sortorder.#{i+1}"] = value[i] }
-            else
-              result["-sortorder.1"] = value
-            end
-          when :post_script
-            if value.class == Array
-              result['-script'] = value[0]
-              result['-script.param'] = value[1]
-            else
-              result['-script'] = value
-            end
-          when :pre_find_script
-            if value.class == Array
-              result['-script.prefind'] = value[0]
-              result['-script.prefind.param'] = value[1]
-            else
-              result['-script.presort'] = value
-            end
-          when :pre_sort_script
-            if value.class == Array
-              result['-script.presort'] = value[0]
-              result['-script.presort.param'] = value[1]
-            else
-              result['-script.presort'] = value
-            end
-          when :response_layout
-            result['-lay.response'] = value
-          when :logical_operator
-            result['-lop'] = value
-          when :modification_id
-            result['-modid'] = value
-          else
-            raise ParameterError.new("Invalid option: #{key} (are you using a string instead of a symbol?)")
-          end
-        end
-        return result
-      end
     
   end
 end

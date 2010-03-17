@@ -183,7 +183,7 @@ module Rfm
       if self[name] != nil
         @mods[name] = val
       else
-        raise ParameterError.new("You attempted to modify a field called '#{name}' on the Rfm::Record object, but that field does not exist.")
+        raise ParameterError, "You attempted to modify a field called '#{name}' on the Rfm::Record object, but that field does not exist."
       end
     end
     

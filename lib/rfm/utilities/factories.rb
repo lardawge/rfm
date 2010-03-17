@@ -7,18 +7,16 @@ module Rfm
     
     class Factory < CaseInsensitiveHash
       
-      def initialize(server, database=nil)
-        @server = server
-        @database = database.nil? ? {} : { '-db' => database.name }
-      end
-      
       def [](name)
         super or (self[name] = instantiate_klass(name))
       end
-      
+
       def all
         set_options
-        ResultSet.new(@server, @server.do_action(@server.options[:account_name], @server.options[:password], @url_options, @database).body).each do |record|
+        params   = ParamsBuilder.parse(@action)
+        response = Response.http(params)
+        
+        ResultSet.new(response).each do |record|
           name = record[@hash_key]
           self[name] = instantiate_klass(name) if self[name].nil?
         end
@@ -31,11 +29,11 @@ module Rfm
       
       def set_options
         @hash_key = 'database_name'
-        @url_options = '-dbnames'
+        @action  = :dbnames
       end
       
       def instantiate_klass(dbname)
-        Database.new(dbname, @server)
+        Database.new(dbname)
       end
     
     end
@@ -44,11 +42,11 @@ module Rfm
       
       def set_options
         @hash_key = 'layout_name'
-        @url_options = '-layoutnames'
+        @action  = :layoutnames
       end
       
       def instantiate_klass(layout_name)
-        Layout.new(layout_name, @database)
+        Layout.new(layout_name)
       end
     
     end
@@ -57,11 +55,11 @@ module Rfm
       
       def set_options
         @hash_key = 'script_name'
-        @url_options = '-scriptnames'
+        @action  = :scriptnames
       end
       
       def instantiate_klass(script_name)
-        Script.new(script_name, @database)
+        Script.new(script_name)
       end
     
     end

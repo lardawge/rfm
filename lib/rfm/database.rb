@@ -41,7 +41,7 @@ module Rfm
   # 
   # The Database::script attribute is actually a ScriptFactory object, although it subclasses hash, so it
   # should work in all the ways you expect. Note, though, that it is completely empty until the first time
-  # you attempt to access its elements. At that (lazy) point, it hits FileMaker, loads in the list of scripts,
+  # you attempt to access its elements. At that point, it hits FileMaker, loads in the list of scripts,
   # and constructs a Script object for each one. In other words, it incurrs no overhead until you use it. 
   #
   # Note: You don't need a Script object to _run_ a script (see the Layout object instead).
@@ -50,26 +50,20 @@ module Rfm
   # 
   # In addition to the +layout+ attribute, Server has a few other useful attributes:
   #
-  # * *server* is the Server object this database comes from
   # * *name* is the name of this database
-  # * *options* is a hash of all server options used to initialize this server
   class Database
-    attr_reader :server, :name, :account_name, :password, :fm_layout, :script
-    attr_writer :account_name, :password
-    
+    attr_reader :name, :script
     # Initialize a database object. You never really need to do this. Instead, just do this:
     # 
     #   my_server = Rfm::Server.new(...)
     #   my_database = my_server.db("Customers")
     #
     # This sample code gets a database object representing the Customers database on the FileMaker server.
-    def initialize(name, server)
+    def initialize(name)
       @name = name
-      @server = server
-      @account_name = server.options[:account_name] || ""
-      @password = server.options[:password] || ""
-      @fm_layout = Factories::LayoutFactory.new(server, self)
-      @script = Factories::ScriptFactory.new(server, self)
+      @layout = Factories::LayoutFactory.new
+      @script = Factories::ScriptFactory.new
+      Rfm.options[:database] = name
     end
 
     # Access the Layout object representing a layout in this database. For example:
@@ -83,22 +77,22 @@ module Rfm
     # returned is created on the fly and assumed to refer to a valid layout, but you will
     # get no error at this point if the layout you specify doesn't exist. Instead, you'll
     # receive an error when you actually try to perform some action it.
-    def layout(name)
-      @fm_layout[name]
+    def layout(name=nil)
+      return @layout if name.nil?
+      @layout[name]
+    end
+    alias_method :layout=, :layout
+    
+    def [](name) # :nodoc:
+      layout(name)
     end
     
-    #TODO remove in next major release.
-    def [](layout_name) # :nodoc:
-      warn "#[] is deprecated, use #layout instead"
-      layout(layout_name)
-    end
-    
-    # List all layouts belonging to a given database
+    # List all layouts belonging to a given database. Alias for #layout.all.
     def layouts
-      @fm_layout.all
+      @layout.all
     end
     
-    # List all scripts belonging to a given database
+    # List all scripts belonging to a given database. Alias for #script.all.
     def scripts
       @script.all
     end

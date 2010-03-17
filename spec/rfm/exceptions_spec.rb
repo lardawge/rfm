@@ -1,7 +1,7 @@
 require File.expand_path(File.dirname(__FILE__) + '/../spec_helper')
 
 module Rfm
-  describe FileMakerError, ".get" do
+  describe FileMakerError do
     describe ".get" do
       
       it "should return a default system error if input code is 0" do

@@ -30,12 +30,12 @@ module Rfm
   #   it provides metadata about the portals in the ResultSet and the Fields on those portals
 
   class ResultSet < Array
-    attr_reader :server, :fields, :portals, :date_format, :time_format, :timestamp_format, :total_count, :foundset_count, :layout
+    attr_reader :fields, :portals, :date_format, :time_format, :timestamp_format, :total_count, :foundset_count, :layout
     
-    # Initializes a new ResultSet object. You will probably never do this your self (instead, use the Layout
+    # Initializes a new ResultSet object. You will probably never do this yourself (instead, use the Layout
     # object to get various ResultSet objects).
     #
-    # If you feel so inclined, though, pass a Server object, and some +fmpxmlresult+ compliant XML in a String.
+    # If you feel so inclined, pass a Server object, and some +fmpxmlresult+ compliant XML in a String.
     #
     # =Attributes
     #
@@ -54,18 +54,12 @@ module Rfm
     #   layout contains portals, you can find out what fields they contain here. Again, if it's the data you're
     #   after, you want to look at the Record object.
     
-    def initialize(server, fm_data, layout=nil)
-      @server = server
+    def initialize(data, layout=nil)
       @layout = layout
       @fields = CaseInsensitiveHash.new
       @portals = CaseInsensitiveHash.new
-      @date_format = nil
-      @time_format = nil
-      @timestamp_format = nil
-      @total_count = nil
-      @foundset_count = nil
       
-      doc = Nokogiri.XML(fm_data)
+      doc = Nokogiri.XML(data)
       
       check_for_errors(doc.css('error').attribute('code').value.to_i)
       
@@ -108,7 +102,7 @@ module Rfm
     private
     
       def check_for_errors(error_code)
-        raise FileMakerError.get(error_code) if error_code != 0 && (error_code != 401 || @server.options[:raise_on_401])
+        raise FileMakerError.get(error_code) if error_code != 0 && (error_code != 401 || Rfm.options[:raise_on_401])
       end
     
       def convert_format_string(fm_format)

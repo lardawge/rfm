@@ -219,6 +219,9 @@ module Rfm
   class AuthenticationError < RfmError #:nodoc:
   end
   
+  class PemFileMissingError < StandardError #:nodoc:  
+  end
+  
   class CaseInsensitiveHash < Hash #:nodoc:
     def []=(key, value)
       super(key.downcase, value)
@@ -228,7 +231,6 @@ module Rfm
     end
   end
   
-  autoload :Factories, 'rfm/utilities/factories'
   autoload :FileMakerError, "rfm/exceptions"
   autoload :ResultSet, "rfm/resultset"
   autoload :Record, "rfm/record"
@@ -237,5 +239,23 @@ module Rfm
   autoload :FieldControl, 'rfm/field_control'
   autoload :Layout, 'rfm/layout'
   autoload :Server, 'rfm/server'
+  autoload :Response, 'rfm/response'
   
+  autoload :Factories, 'rfm/utilities/factories'
+  autoload :ParamsBuilder, 'rfm/utilities/params_builder'
+  
+  def self.options(options={})
+    @options ||= {
+      :host => 'localhost',
+      :port => 80,
+      :ssl => true,
+      :pem => '/not_found.pem',
+      :account_name => '',
+      :password => '',
+      :warn_on_redirect => true,
+      :raise_on_401 => false,
+      :log_actions => false,
+      :log_responses => false
+    }.merge(options)
+  end
 end

@@ -17,12 +17,12 @@ module Rfm
   # The Layout object is where you get most of your work done. It includes methods for all
   # FileMaker actions:
   # 
-  # * Layout::all
-  # * Layout::any
-  # * Layout::find
-  # * Layout::edit
-  # * Layout::create
-  # * Layout::delete
+  # * Layout#all
+  # * Layout#any
+  # * Layout#find
+  # * Layout#edit
+  # * Layout#create
+  # * Layout#delete
   #
   # =Running Scripts
   # 
@@ -119,7 +119,7 @@ module Rfm
   #   list that is attached to any field on the layout
   
   class Layout
-    attr_reader :name, :db
+    attr_reader :name
     
     # Initialize a layout object. You never really need to do this. Instead, just do this:
     # 
@@ -134,16 +134,17 @@ module Rfm
     #
     #   my_layout = Rfm::Server.new(...).db("Customers").layout("Details")
     
-    def initialize(name, db)
+    def initialize(name)
       @name = name
-      @db = db
     end
     
+    #TODO move to module
     def field_controls
       load_layout_data unless defined? @field_controls
       @field_controls
     end
     
+    #TODO move to module
     def value_lists
       load_layout_data unless defined? @value_lists
       @value_lists
@@ -151,12 +152,12 @@ module Rfm
     
     # Returns a ResultSet object containing _every record_ in the table associated with this layout.
     def all(options={})
-      get_records('-findall', {}, options)
+      get(:findall, {}, options)
     end
     
     # Returns a ResultSet containing a single random record from the table associated with this layout.
     def any(options={})
-      get_records('-findany', {}, options)
+      get(:findany, {}, options)
     end
   
     # Finds a record. Typically you will pass in a hash of field names and values. For example:
@@ -168,11 +169,11 @@ module Rfm
     #
     # If you pass anything other than a hash as the first parameter, it is converted to a string and
     # assumed to be FileMaker's internal id for a record (the recid).
-    def find(hash_or_recid, options={})
-      if hash_or_recid.kind_of? Hash
-        get_records('-find', hash_or_recid, options)
+    def find(query, options={})
+      if query.kind_of? Hash
+        get(:find, query, options)
       else
-        get_records('-find', {'-recid' => hash_or_recid.to_s}, options)
+        get(:find, {'-recid' => query.to_s}, options)
       end
     end
   
@@ -185,7 +186,7 @@ module Rfm
     # The above code would find the first record with _Bill_ in the First Name field and change the 
     # first name to _Steve_.
     def edit(recid, values, options = {})
-      get_records('-edit', {'-recid' => recid}.merge(values), options)
+      get(:edit, {'-recid' => recid}.merge(values), options)
     end
     
     # Creates a new record in the table associated with this layout. Pass field data as a hash in the 
@@ -200,7 +201,7 @@ module Rfm
     # The above code adds a new record with first name _Jerry_ and last name _Robin_. It then
     # puts the value from the ID field (a serial number) into a ruby variable called +id+.
     def create(values, options = {})
-      get_records('-new', values, options)
+      get(:new, values, options)
     end
     
     # Deletes the record with the specified internal recid. Returns a ResultSet with the deleted record.
@@ -212,33 +213,28 @@ module Rfm
     # 
     # The above code finds every record with _Bill_ in the First Name field, then deletes the first one.
     def delete(recid, options = {})
-      get_records('-delete', {'-recid' => recid}, options)
+      get(:delete, { '-recid' => recid }, options)
       return nil
     end
     
     private
-      
-      def load_layout
-        post = {'-db' => @db.name, '-lay' => @name, '-view' => ''}
-        host = @db.server.options[:host]
-        port = @db.server.options[:port]
-        @db.server.http_fetch(host, port, "/fmi/xml/FMPXMLLAYOUT.xml", @db.account_name, @db.password, post)
-      end
     
       def load_layout_data
-        doc = Nokogiri.XML(load_layout.body)
+        params = ParamsBuilder.parse(:view, :layout => @name)
+        response = Response.http(params, '/fmi/xml/FMPXMLLAYOUT.xml')
+        doc = Nokogiri.XML(response)
 
         # check for errors
-        error = doc.search('ERRORCODE').text.to_i
+        error = doc.css('ERRORCODE').text.to_i
         raise FileMakerError.get(error) if error != 0
         
-        value_lists = doc.search('VALUELISTS')
-        layouts = doc.search('LAYOUT')
+        value_lists = doc.css('VALUELISTS')
+        layouts = doc.css('LAYOUT')
         
         # process valuelists
         @value_lists = CaseInsensitiveHash.new
         unless value_lists.empty?
-          value_lists.search('VALUELIST').each do |valuelist|
+          value_lists.css('VALUELIST').each do |valuelist|
             name = valuelist.attribute('NAME').value
             @value_lists[name] = valuelist.children.collect { |e| e.text }
           end
@@ -246,9 +242,9 @@ module Rfm
         
         # process field controls
         @field_controls = CaseInsensitiveHash.new
-        layouts.search('FIELD').each do |field| 
+        layouts.css('FIELD').each do |field| 
           name = field.attribute('NAME').value
-          style = field.search('STYLE')
+          style = field.css('STYLE')
           type = style.attribute('TYPE').value
           value_list_name = style.attribute('VALUELIST').value
           value_list = @value_lists[value_list_name] if value_list_name != ''
@@ -266,9 +262,9 @@ module Rfm
         end     
       end
       
-      def get_records(action, extra_params = {}, options = {})
-        ResultSet.new(@db.server, @db.server.do_action(@db.account_name, 
-        @db.password, action, {"-db" => @db.name, "-lay" => self.name}.merge(extra_params), options).body, self)
+      def get(action, query={}, options={})
+        params = ParamsBuilder.parse(action, query, options, :layout => @name)
+        ResultSet.new(Response.http(params), self)
       end
     
   end
