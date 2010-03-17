@@ -31,14 +31,14 @@ module Rfm
       it "should return a hash if passed more than one hash" do
         params = builder.parse({:edit => true}, {:open => 'yes'})
         params.should have_key(:edit)
-        params.should be_a Hash
+        params.should be_a(Hash)
       end
     end
     
     describe ".expand" do
       it "should return a hash with a nil value" do
         options = builder.expand('test')
-        options.should be_a Hash
+        options.should be_a(Hash)
         options['test'].should be_nil
       end
       

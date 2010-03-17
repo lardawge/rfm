@@ -56,8 +56,8 @@ module Rfm
       end
       
       it "should return a string with the code and message included" do
-        @message.should match /This is a custom message/
-        @message.should match /503/
+        @message.should match(/This is a custom message/)
+        @message.should match(/503/)
       end
       
       it "should look like" do
