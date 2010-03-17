@@ -207,16 +207,13 @@ $:.unshift(path) unless $:.include?(path)
 
 module Rfm
   
-  class RfmError < StandardError #:nodoc:
+  class CommunicationError < StandardError #:nodoc:
   end
   
-  class CommunicationError < RfmError #:nodoc:
+  class ParameterError < StandardError #:nodoc:
   end
   
-  class ParameterError < RfmError #:nodoc:
-  end
-  
-  class AuthenticationError < RfmError #:nodoc:
+  class AuthenticationError < StandardError #:nodoc:
   end
   
   class PemFileMissingError < StandardError #:nodoc:  

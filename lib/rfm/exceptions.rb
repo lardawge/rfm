@@ -16,8 +16,7 @@ module Rfm
   # You could access the specific error code by accessing:
   #   
   #   err.code
-  class FileMakerError < RfmError
-    attr_accessor :code
+  module FileMakerError
     
     # This method instantiates and returns the appropriate FileMakerError object depending on the error code passed to it. It
     # also accepts an optional message.
@@ -88,13 +87,17 @@ module Rfm
     end
   end
   
-  class UnknownError < FileMakerError #:nodoc:
+  class RfmError < StandardError #:nodoc:
+    attr_accessor :code
   end
   
-  class SystemError < FileMakerError #:nodoc:
+  class UnknownError < RfmError #:nodoc:
   end
   
-  class MissingError < FileMakerError  #:nodoc:
+  class SystemError < RfmError #:nodoc:
+  end
+  
+  class MissingError < RfmError  #:nodoc:
   end
   
   class RecordMissingError < MissingError #:nodoc:
@@ -112,7 +115,7 @@ module Rfm
   class TableMissingError < MissingError #:nodoc:
   end
 
-  class SecurityError < FileMakerError #:nodoc:
+  class SecurityError < RfmError #:nodoc:
   end
   
   class RecordAccessDeniedError < SecurityError #:nodoc:
@@ -124,7 +127,7 @@ module Rfm
   class FieldAccessIsDeniedError < SecurityError #:nodoc:
   end
   
-  class ConcurrencyError < FileMakerError #:nodoc:
+  class ConcurrencyError < RfmError #:nodoc:
   end
   
   class RecordInUseError < ConcurrencyError #:nodoc:
@@ -136,13 +139,13 @@ module Rfm
   class RecordModIdDoesNotMatchError < ConcurrencyError #:nodoc:
   end
 
-  class GeneralError < FileMakerError #:nodoc:
+  class GeneralError < RfmError #:nodoc:
   end
 
   class NoRecordsFoundError < GeneralError #:nodoc:
   end
    
-  class ValidationError < FileMakerError #:nodoc:
+  class ValidationError < RfmError #:nodoc:
   end 
 
   class DateValidationError < ValidationError #:nodoc:
@@ -175,7 +178,7 @@ module Rfm
   class MaximumCharactersValidationError < ValidationError #:nodoc:
   end
 
-  class FileError < FileMakerError #:nodoc:
+  class FileError < RfmError #:nodoc:
   end 
 
   class UnableToOpenFileError < FileError #:nodoc:
