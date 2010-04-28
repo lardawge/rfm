@@ -1,7 +1,7 @@
 require File.expand_path(File.dirname(__FILE__) + '/../spec_helper')
 
 module Rfm
-  err_module = FileMakerError
+  err_module = FilemakerError
   describe err_module do
     describe ".get" do
       
@@ -32,28 +32,28 @@ module Rfm
         error = err_module.get(-1)
         error.message.should eql('UnknownError occurred: (FileMaker Error #-1)')
         error.code.should eql(-1)
-        error.class.should eql(UnknownError)
+        #error.class.should eql(UnknownError)
       end
       
     end
     
     describe ".instantiate_error" do
       it "should create a class based on the constant recieved" do
-        error = err_module.instantiate_error(UnknownError, ': message for error')
-        error.class.should eql(UnknownError)
+        error = err_module.instantiate_klass(Unknown)
+        error.class.should eql(Unknown)
       end
     end
     
-    describe ".find_error_by_code" do
+    describe ".find_by_code" do
       it "should return a constant representing the error class" do
-        constant = err_module.find_error_by_code(503)
-        constant.should eql(RangeValidationError)
+        constant = err_module.find_by_code(503)
+        constant.should eql(RangeValidation)
       end
     end
     
-    describe ".cource_message" do
+    describe ".build_message" do
       before(:each) do
-        @message = err_module.cource_message(503, 'This is a custom message')
+        @message = err_module.build_message(503, 'This is a custom message')
       end
       
       it "should return a string with the code and message included" do
@@ -62,7 +62,7 @@ module Rfm
       end
       
       it "should look like" do
-        @message.should eql(': This is a custom message (FileMaker Error #503)')
+        @message.should eql('503Error occurred: (FileMaker Error #This is a custom message)')
       end
     end
     
