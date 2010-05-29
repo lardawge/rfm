@@ -3,12 +3,18 @@ require File.expand_path(File.dirname(__FILE__) + '/../spec_helper')
 module Rfm
   err_module = FilemakerError
   describe err_module do
-    describe ".get" do
+    describe ".lookup" do
       
       it "should return a default system error if input code is 0" do
         error = err_module.get(0)
         error.message.should eql('SystemError occurred: (FileMaker Error #0)')
         error.code.should eql(0)
+      end
+      
+      it "should return a default system error if input code is 22" do
+        error = err_module.get(20)
+        error.message.should eql('SystemError occurred: (FileMaker Error #20)')
+        error.code.should eql(20)
       end
       
       it "should return a custom message as second argument" do
@@ -37,17 +43,10 @@ module Rfm
       
     end
     
-    describe ".instantiate_error" do
-      it "should create a class based on the constant recieved" do
-        error = err_module.instantiate_klass(Unknown)
-        error.class.should eql(Unknown)
-      end
-    end
-    
     describe ".find_by_code" do
       it "should return a constant representing the error class" do
         constant = err_module.find_by_code(503)
-        constant.should eql(RangeValidation)
+        constant.should eql(err_module::RangeValidationError)
       end
     end
     
@@ -62,7 +61,7 @@ module Rfm
       end
       
       it "should look like" do
-        @message.should eql('503Error occurred: (FileMaker Error #This is a custom message)')
+        @message.should eql('503 occurred: (FileMaker Error #This is a custom message)')
       end
     end
     
