@@ -1,11 +1,17 @@
-require 'nokogiri'
-# Rfm provides easy access to FileMaker Pro data. With it, Ruby scripts can
-# perform finds, read records/fields, update data, and perform scripts using
+# RFM provides easy access to FileMaker Pro data. With it, Ruby scripts can
+# perform finds, read records and fields, update data, and perform scripts using
 # a simple ruby-like syntax.
 #
-# RFM uses FileMaker's XML API, so it requires:
+# Author::    Geoff Coffey  (mailto:gwcoffey@gmail.com)
+# Copyright:: Copyright (c) 2007 Six Fried Rice, LLC and Mufaddal Khumri
+# License::   See MIT-LICENSE for details
+#
+# RFM uses the FileMaker XML API, so it requires:
 # - FileMaker Server 9.0 or later
 # - or FileMaker Server Advanced 7.0 or later
+#
+# This documentation serves as a reference to the classes in the API. For more complete
+# usage documentation, see the RFM home page at http://sixfriedrice.com/wp/products/rfm/
 #
 # = Quick Start
 #
@@ -16,37 +22,37 @@ require 'nokogiri'
 #
 # (If you don't have Rfm installed, use the +gem install rfm+ command to get it.)
 #
-# === The Server
+# === Get a Server
 #
 # Everything in Rfm starts with the Server object. You create a Server object like this:
 #
-#   my_server = Rfm::Server.new(
+#   myServer = Rfm::Server.new(
 #     :host => "yourhost",
 #     :account_name => "someone",
-#     :password => "secret"
+#     :pasword => "secret"
 #   )
 #
 # The Server object supports many other options, which you'll find explained in its
 # documentation.
 #
 # Note: The account name and password are optional. You can instead provide them on 
-# a per-database basis (using Database#account_name and Database#password). But 
+# a per-database basis (using Database::account_name and Database::password). But 
 # it is convenient to do it here because you often have one set of credentials
 # across all databases. Also, you must provide an account_name and password if you
 # want to ask the server for a list of available databases.
 #
-# === The Database
+# === Get a Database
 #
 # Once you have a Server object, you can use it to get a Database. For example, if your
 # database is called "Customers", you get it like this:
 #
-#   my_database = my_server.db("Customers")
+#   myDatabase = myServer["Customers"]
 #
 # If you need to supply account and password info specifically for this database
 # (rather than doing it at the Server level), do this:
 #
-#   my_database.account_name = "someone"
-#   my_database.password = "secret"
+#   myDatabase.account_name = "someone"
+#   myDatabase.password = "secret"
 #
 # *IMPORTANT NOTE:* The account name you use to access FileMaker must have the
 # +fmxml+ extended privilege. In other words, edit its privilege set and turn on
@@ -54,13 +60,13 @@ require 'nokogiri'
 # at the bottom-left of the Edit Privilege Set window. If you don't do this, 
 # Rfm will report that it can't log in.
 #
-# === The Layout
+# === Get a Layout
 #
 # Every action you send to FileMaker always goes through a layout. This is how Rfm knows
 # which table you want to work with, and which fields on that table you care about. This 
 # should feel pretty familiar now:
 #
-#   my_layout = my_database.layout("Details")
+#   myLayout = myDatabase["Details"]
 #
 # You might use layouts you already have, or make new layout just for Rfm. Just remember that
 # if you delete a layout, or remove a field from a layout that your Rfm code uses, the 
@@ -68,37 +74,40 @@ require 'nokogiri'
 #
 # === Putting it Together
 #
-# Usually you don't care much about the intermediate Database object since it's a gateway object.
-# So it is often easiest to combine all the above steps like this:
+# Usually you don't care much about the intermediate Database object (it's a gateway object,
+# if you will). So it is often easiest to combine all the above steps like this:
 #
-#   my_layout = my_server.db("Customers").layout("Details")
+#   myLayout = myServer["Customers"]["Details"]
 #
 # === Performing Actions
 #
-# The Layout object can do a lot of things (see documentation for a full list). But
+# The Layout object can do a lot of things (see its documentation for a full list). But
 # in general, it involves records. For instance, you can find records:
 #
-#   result = my_layout.find({"First Name" => "Bill"})
+#   result = myLayout.find({"First Name" => "Bill"})
 #
-# This will find everybody whose first name in Bill. All the Layout methods return a
+# That code finds everybody whose first name in Bill. All the Layout methods return an
 # ResultSet object. It contains the records, as well as metadata about the fields and 
-# portals on the layout. Usually you'll only concern yourself with the records (you
-# can read about other methods in the ResultSet documentation). 
+# portals on the layout. Usually you'll only concern yourself with the records (and you
+# can read about the others in the ResultSet documentation). 
 #
-# ResultSet is a subclass of Array, Ruby's built in array type. So you can treat it just
+# ResultSet is a subclass of Array, Ruby's built in array type. So you can treate it just
 # like any other array:
 #
-#   first_record = result.first
+#   first_record = result[0]
 #   a_few_records = result[3,7]
 #   record_count = result.size
 #
-# But usually you'll want to loop through them all.
+# But usually you'll want to loop through them all. Because this is an array, you can use
+# code that is familiar to any Ruby whiz:
 #
-#   result.each { |record| # do something with record here }
+#   result.each { |record|
+#     # do something with record here
+#   }
 # 
 # === Working with Records
 #
-# The records in a ResultSet are Record objects. They hold the actual data from
+# The records in a ResultSet are actually Record objects. They hold the actual data from
 # FileMaker. Record subclasses Hash, another built in Ruby type, so you can use them like
 # this:
 #
@@ -131,24 +140,28 @@ require 'nokogiri'
 # if. This is not the value in any field. Rather, it is the ID FileMaker assigns to the
 # record internally. So an edit or delete is almost always a two-step process:
 #
-#   record = my_layout.find({"Customer ID" => "1234"}).first
-#   my_layout.edit(record.record_id, {"First Name" => "Steve"})
+#   record = myLayout.find({"Customer ID" => "1234"})[0]
+#   myLayout.edit(record.record_id, {"First Name" => "Steve"})
 #
-# The code above first finds a Customer record. It then uses the Record#record_id method
-# to discover that record's internal id. That id is passed to the Layout#edit method.
+# The code above first finds a Customer record. It then uses the Record::record_id method
+# to discover that record's internal id. That id is passed to the Layout::edit method.
 # The edit method also accepts a hash of record changes. In this case, we're changing
 # the value in the First Name field to "Steve".
 #
+# Also, note the [0] on the end of the first line. A find _always_ returns a ResultSet.
+# If there's only one record, it is still in an array. This array just happens to have only
+# one element. The [0] pulls out that single record.
+#
 # To delete a record, you would do this instead:
 #
-#   record = my_layout.find({"Customer ID" => "1234"}).first
-#   my_layout.delete(record.record_id)
+#   record = myLayout.find({"Customer ID" => "1234"})[0]
+#   myLayout.delete(record.record_id)
 #
-# Finally, the Layout#find method can also find a record using its internal id:
+# Finally, the Layout::find method can also find a record using its internal id:
 #
-#   record = my_layout.find(some_id)
+#   record = myLayout.find(some_id)
 #
-# If the parameter you pass to Layout#find is not a hash, it is converted to a string
+# If the parameter you pass to Layout::find is not a hash, it is converted to a string
 # and assumed to be a record id.
 #
 # === Performing Scripts
@@ -157,15 +170,18 @@ require 'nokogiri'
 # to find a set of records, then run a script on them all. Or you may want to run a script
 # when you delete a record. Here's how:
 #
-#   my_layout.find({"First Name" => "Bill"}, {:post_script => "Process Sales"})
+#   myLayout.find({"First Name" => "Bill"}, {:post_script => "Process Sales"})
 #
 # This code finds every record with "Bill" in the First Name field, then  runs the script
 # called "Process Sales." You can control when the script actually runs, as explained in
 # the documentation for Common Options for the Layout class.
 #
-# You can also pass a parameter to the script when it runs:
+# You can also pass a parameter to the script when it runs. Here's the deal:
 #
-#   my_layout.find({"First Name" => "Bill"}, {:post_script => ["Process Sales", "all"]})
+#   myLayout.find(
+#     {"First Name" => "Bill"},
+#     {:post_script => ["Process Sales", "all"]}
+#   )
 #
 # This time, the text value "all" is passed to the script as a script parameter.
 #
@@ -189,7 +205,11 @@ require 'nokogiri'
 #
 # Then you can get a server concisely:
 #
-#   my_server = Server.new(RFM_CONFIG).db(RFM_CONFIG[:db]).layout("My Layout")
+#   myServer = Server.net(RFM_CONFIG)
+#   myServer[RFM_CONFIG[:db]]["My Layout"]...
+#
+# You might even want to add code to your application.rb to centralize access
+# to your various layouts.
 #
 # === Disable ActiveRecord
 #
@@ -206,53 +226,19 @@ path = File.expand_path(File.dirname(__FILE__))
 $:.unshift(path) unless $:.include?(path)
 
 module Rfm
+  class CommunicationError  < StandardError; end
+  class ParameterError      < StandardError; end
+  class AuthenticationError < StandardError; end
   
-  class CommunicationError < StandardError #:nodoc:
-  end
+  autoload :Error, "rfm/error"
+  autoload :Factory, "rfm/factory"
+  autoload :Result, "rfm/result"
+  autoload :Utility, "rfm/utility"
   
-  class ParameterError < StandardError #:nodoc:
-  end
+  autoload :Database, 'rfm/commands/database'
+  autoload :FieldControl, 'rfm/commands/field_control'
+  autoload :Layout, 'rfm/commands/layout'
+  autoload :Script, 'rfm/commands/script'
+  autoload :Server, 'rfm/commands/server'
   
-  class AuthenticationError < StandardError #:nodoc:
-  end
-  
-  class PemFileMissingError < StandardError #:nodoc:  
-  end
-  
-  class CaseInsensitiveHash < Hash #:nodoc:
-    def []=(key, value)
-      super(key.downcase, value)
-    end
-    def [](key)
-      super(key.downcase)
-    end
-  end
-  
-  autoload :FileMakerError, "rfm/exceptions"
-  autoload :ResultSet, "rfm/resultset"
-  autoload :Record, "rfm/record"
-  autoload :Field, "rfm/field"
-  autoload :Database, 'rfm/database'
-  autoload :FieldControl, 'rfm/field_control'
-  autoload :Layout, 'rfm/layout'
-  autoload :Server, 'rfm/server'
-  autoload :Response, 'rfm/response'
-  
-  autoload :Factories, 'rfm/utilities/factories'
-  autoload :ParamsBuilder, 'rfm/utilities/params_builder'
-  
-  def self.options(options={})
-    @options ||= {
-      :host => 'localhost',
-      :port => 80,
-      :ssl => true,
-      :pem => '/not_found.pem',
-      :account_name => '',
-      :password => '',
-      :warn_on_redirect => true,
-      :raise_on_401 => false,
-      :log_actions => false,
-      :log_responses => false
-    }.merge(options)
-  end
 end

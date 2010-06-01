@@ -17,12 +17,12 @@ module Rfm
   # The Layout object is where you get most of your work done. It includes methods for all
   # FileMaker actions:
   # 
-  # * Layout#all
-  # * Layout#any
-  # * Layout#find
-  # * Layout#edit
-  # * Layout#create
-  # * Layout#delete
+  # * Layout::all
+  # * Layout::any
+  # * Layout::find
+  # * Layout::edit
+  # * Layout::create
+  # * Layout::delete
   #
   # =Running Scripts
   # 
@@ -119,45 +119,49 @@ module Rfm
   #   list that is attached to any field on the layout
   
   class Layout
-    attr_reader :name
     
     # Initialize a layout object. You never really need to do this. Instead, just do this:
     # 
-    #   my_server = Rfm::Server.new(...)
-    #   my_db = my_server.db("Customers")
-    #   my_layout = my_db.layout("Details")
+    #   myServer = Rfm::Server.new(...)
+    #   myDatabase = myServer["Customers"]
+    #   myLayout = myDatabase["Details"]
     #
     # This sample code gets a layout object representing the Details layout in the Customers database
     # on the FileMaker server.
     # 
     # In case it isn't obvious, this is more easily expressed this way:
     #
-    #   my_layout = Rfm::Server.new(...).db("Customers").layout("Details")
-    
-    def initialize(name)
+    #   myServer = Rfm::Server.new(...)
+    #   myLayout = myServer["Customers"]["Details"]
+    def initialize(name, db)
       @name = name
+      @db = db
+      
+      @loaded = false
+      @field_controls = Rfm::Utility::CaseInsensitiveHash.new
+      @value_lists = Rfm::Utility::CaseInsensitiveHash.new
     end
     
-    #TODO move to module
+    attr_reader :name, :db
+    
     def field_controls
-      load_layout_data unless defined? @field_controls
+      load unless @loaded
       @field_controls
     end
     
-    #TODO move to module
     def value_lists
-      load_layout_data unless defined? @value_lists
+      load unless @loaded
       @value_lists
     end
     
     # Returns a ResultSet object containing _every record_ in the table associated with this layout.
-    def all(options={})
-      get(:findall, {}, options)
+    def all(options = {})
+      get_records('-findall', {}, options)
     end
     
     # Returns a ResultSet containing a single random record from the table associated with this layout.
-    def any(options={})
-      get(:findany, {}, options)
+    def any(options = {})
+      get_records('-findany', {}, options)
     end
   
     # Finds a record. Typically you will pass in a hash of field names and values. For example:
@@ -169,11 +173,11 @@ module Rfm
     #
     # If you pass anything other than a hash as the first parameter, it is converted to a string and
     # assumed to be FileMaker's internal id for a record (the recid).
-    def find(query, options={})
-      if query.kind_of? Hash
-        get(:find, query, options)
+    def find(hash_or_recid, options = {})
+      if hash_or_recid.kind_of? Hash
+        get_records('-find', hash_or_recid, options)
       else
-        get(:find, {'-recid' => query.to_s}, options)
+        get_records('-find', {'-recid' => hash_or_recid.to_s}, options)
       end
     end
   
@@ -186,7 +190,7 @@ module Rfm
     # The above code would find the first record with _Bill_ in the First Name field and change the 
     # first name to _Steve_.
     def edit(recid, values, options = {})
-      get(:edit, {'-recid' => recid}.merge(values), options)
+      get_records('-edit', {'-recid' => recid}.merge(values), options)
     end
     
     # Creates a new record in the table associated with this layout. Pass field data as a hash in the 
@@ -201,7 +205,7 @@ module Rfm
     # The above code adds a new record with first name _Jerry_ and last name _Robin_. It then
     # puts the value from the ID field (a serial number) into a ruby variable called +id+.
     def create(values, options = {})
-      get(:new, values, options)
+      get_records('-new', values, options)
     end
     
     # Deletes the record with the specified internal recid. Returns a ResultSet with the deleted record.
@@ -213,59 +217,59 @@ module Rfm
     # 
     # The above code finds every record with _Bill_ in the First Name field, then deletes the first one.
     def delete(recid, options = {})
-      get(:delete, { '-recid' => recid }, options)
+      get_records('-delete', {'-recid' => recid}, options)
       return nil
     end
     
     private
     
-      def load_layout_data
-        params = ParamsBuilder.parse(:view, :layout => @name)
-        response = Response.http(params, '/fmi/xml/FMPXMLLAYOUT.xml')
-        doc = Nokogiri.XML(response)
-
-        # check for errors
-        error = doc.css('ERRORCODE').text.to_i
-        raise FileMakerError.get(error) if error != 0
-        
-        value_lists = doc.css('VALUELISTS')
-        layouts = doc.css('LAYOUT')
-        
-        # process valuelists
-        @value_lists = CaseInsensitiveHash.new
-        unless value_lists.empty?
-          value_lists.css('VALUELIST').each do |valuelist|
-            name = valuelist.attribute('NAME').value
-            @value_lists[name] = valuelist.children.collect { |e| e.text }
-          end
-        end
-        
-        # process field controls
-        @field_controls = CaseInsensitiveHash.new
-        layouts.css('FIELD').each do |field| 
-          name = field.attribute('NAME').value
-          style = field.css('STYLE')
-          type = style.attribute('TYPE').value
-          value_list_name = style.attribute('VALUELIST').value
-          value_list = @value_lists[value_list_name] if value_list_name != ''
-          field_control = FieldControl.new(name, type, value_list_name, value_list)
-          existing = @field_controls[name]
-          if existing
-            if existing.kind_of?(Array)
-              existing << field_control
-            else
-              @field_controls[name] = Array[existing, field_control]
-            end
-          else
-            @field_controls[name] = field_control
-          end
-        end     
+    def load
+      @loaded = true
+      fmpxmllayout = @db.server.load_layout(self).body
+      doc = REXML::Document.new(fmpxmllayout)
+      root = doc.root
+      
+      # check for errors
+      error = root.elements['ERRORCODE'].text.to_i
+      raise Rfm::Error.getError(error) if error != 0
+      
+      # process valuelists
+      if root.elements['VALUELISTS'].size > 0
+        root.elements['VALUELISTS'].each_element('VALUELIST') { |valuelist|
+          name = valuelist.attributes['NAME']
+          @value_lists[name] = valuelist.elements.collect {|e| e.text}
+        }
+        @value_lists.freeze
       end
       
-      def get(action, query={}, options={})
-        params = ParamsBuilder.parse(action, query, options, :layout => @name)
-        ResultSet.new(Response.http(params), self)
-      end
+      # process field controls
+      root.elements['LAYOUT'].each_element('FIELD') { |field| 
+        name = field.attributes['NAME']
+        style = field.elements['STYLE'].attributes['TYPE']
+        value_list_name = field.elements['STYLE'].attributes['VALUELIST']
+        value_list = @value_lists[value_list_name] if value_list_name != ''
+        field_control = FieldControl.new(name, style, value_list_name, value_list)
+        existing = @field_controls[name]
+        if existing
+          if existing.kind_of?(Array)
+            existing << field_control
+          else
+            @field_controls[name] = Array[existing, field_control]
+          end
+        else
+          @field_controls[name] = field_control
+        end
+      }
+      @field_controls.freeze      
+    end
     
+    def get_records(action, extra_params = {}, options = {})
+      Rfm::Result::ResultSet.new(@db.server, @db.server.do_action(@db.account_name, 
+      @db.password, action, params().merge(extra_params), options).body, self)
+    end
+    
+    def params
+      {"-db" => @db.name, "-lay" => self.name}
+    end
   end
 end

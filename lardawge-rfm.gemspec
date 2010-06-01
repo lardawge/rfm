@@ -5,11 +5,11 @@
 
 Gem::Specification.new do |s|
   s.name = %q{lardawge-rfm}
-  s.version = "1.4.1"
+  s.version = "1.4.0"
 
   s.required_rubygems_version = Gem::Requirement.new(">= 0") if s.respond_to? :required_rubygems_version=
   s.authors = ["Geoff Coffey", "Mufaddal Khumri", "Atsushi Matsuo", "Larry Sprock"]
-  s.date = %q{2010-03-17}
+  s.date = %q{2010-05-31}
   s.description = %q{Rfm brings your FileMaker data to Ruby. Now your Ruby scripts and Rails applications can talk directly to your FileMaker server.}
   s.email = %q{http://groups.google.com/group/rfmcommunity}
   s.extra_rdoc_files = [
@@ -18,18 +18,16 @@ Gem::Specification.new do |s|
   ]
   s.files = [
     "lib/rfm.rb",
-     "lib/rfm/database.rb",
-     "lib/rfm/exceptions.rb",
-     "lib/rfm/field.rb",
-     "lib/rfm/field_control.rb",
-     "lib/rfm/layout.rb",
-     "lib/rfm/record.rb",
-     "lib/rfm/response.rb",
-     "lib/rfm/resultset.rb",
-     "lib/rfm/server.rb",
-     "lib/rfm/utilities/factories.rb",
-     "lib/rfm/utilities/params_builder.rb",
-     "lib/rfm/utilities/script.rb"
+     "lib/rfm/commands/database.rb",
+     "lib/rfm/commands/field_control.rb",
+     "lib/rfm/commands/layout.rb",
+     "lib/rfm/commands/script.rb",
+     "lib/rfm/commands/server.rb",
+     "lib/rfm/error.rb",
+     "lib/rfm/factory.rb",
+     "lib/rfm/filemaker_errors.rb",
+     "lib/rfm/result.rb",
+     "lib/rfm/utility.rb"
   ]
   s.homepage = %q{http://sixfriedrice.com/wp/products/rfm/}
   s.rdoc_options = ["--line-numbers", "--main", "README.rdoc"]
@@ -37,8 +35,7 @@ Gem::Specification.new do |s|
   s.rubygems_version = %q{1.3.6}
   s.summary = %q{Ruby to Filemaker adapter}
   s.test_files = [
-    "spec/rfm/exceptions_spec.rb",
-     "spec/rfm/params_builder_spec.rb",
+    "spec/rfm/error_spec.rb",
      "spec/spec_helper.rb"
   ]
 

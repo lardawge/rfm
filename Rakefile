@@ -10,7 +10,7 @@ begin
     gem.email = "http://groups.google.com/group/rfmcommunity"
     gem.homepage = "http://sixfriedrice.com/wp/products/rfm/"
     gem.authors = ["Geoff Coffey", "Mufaddal Khumri", "Atsushi Matsuo", "Larry Sprock"]
-    gem.files = FileList['lib/*.rb', 'lib/rfm/*.rb', 'lib/rfm/utilities/*.rb']
+    gem.files = FileList['lib/**/*']
     gem.add_dependency('nokogiri')
     gem.rdoc_options = [ "--line-numbers", "--main", "README.rdoc" ]
   end
