@@ -7,7 +7,6 @@
 # License::   See MIT-LICENSE for details
 require 'nokogiri'
 require 'bigdecimal'
-require 'date'
 
 module Rfm
   module Result
@@ -28,14 +27,12 @@ module Rfm
     #
     # =Attributes
     #
-    # The ResultSet object has several useful attributes:
+    # The ResultSet object has these attributes:
     #
-    # * *server* is the server object this ResultSet came from
+    # * *field_meta* is a hash with field names for keys and Field objects for values; it provides 
+    #   info about the fields in the ResultSet
     #
-    # * *fields* is a hash with field names for keys and Field objects for values; it provides 
-    #   metadata about the fields in the ResultSet
-    #
-    # * *portals* is a hash with table occurrence names for keys and arrays of Field objects for values;
+    # * *portal_meta* is a hash with table occurrence names for keys and arrays of Field objects for values;
     #   it provides metadata about the portals in the ResultSet and the Fields on those portals
   
     class ResultSet < Array
@@ -61,69 +58,76 @@ module Rfm
       # * *portals* is a hash (with table occurrence names for keys and Field objects for values). If your
       #   layout contains portals, you can find out what fields they contain here. Again, if it's the data you're
       #   after, you want to look at the Record object.
-      def initialize(server, fmresultset, layout = nil)
-        @server = server
-        @resultset = nil
+      def initialize(server, xml_response, layout, portals=nil)
         @layout = layout
-        @fields = Rfm::Utility::CaseInsensitiveHash.new
-        @portals = Rfm::Utility::CaseInsensitiveHash.new
+        @field_meta = Rfm::Utility::CaseInsensitiveHash.new
+        @portal_meta = Rfm::Utility::CaseInsensitiveHash.new
         @date_format = nil
         @time_format = nil
         @timestamp_format = nil
         @total_count = nil
         @foundset_count = nil
+        @include_portals = portals 
         
-        doc = Nokogiri.XML(fmresultset)
-        
+        doc = xml_response.gsub('xmlns="http://www.filemaker.com/xml/fmresultset" version="1.0"', '') #Remove response namespace to make parsing less verbose
+        doc = Nokogiri.XML(doc)
+
         #seperate content for less searching
-        datasource  = doc.search('datasource')
-        resultset   = doc.search('resultset')
-        metadata    = doc.search('metadata')
+        datasource  = doc.xpath('/fmresultset/datasource')
+        meta        = doc.xpath('/fmresultset/metadata')
+        resultset   = doc.xpath('/fmresultset/resultset')
+        error       = doc.xpath('/fmresultset/error')
         
         # check for errors
-        error = doc.search('error').attribute('code').value.to_i
-        if error != 0 && (error != 401 || @server.state[:raise_on_401])
-          raise Rfm::Error.getError(error) 
+        error_code = error.attribute('code').value.to_i
+        if error_code != 0 && (error_code != 401 || server.state[:raise_on_401])
+          raise Rfm::Error.getError(error_code) 
         end
-        
+
         # ascertain date and time formats
-        @date_format      = convertFormatString(datasource.attribute('date-format').value)
-        @time_format      = convertFormatString(datasource.attribute('time-format').value)
-        @timestamp_format = convertFormatString(datasource.attribute('timestamp-format').value)
-        
+        @date_format      = convert_format_string(datasource.attribute('date-format').value)
+        @time_format      = convert_format_string(datasource.attribute('time-format').value)
+        @timestamp_format = convert_format_string(datasource.attribute('timestamp-format').value)
+
         # retrieve count
         @foundset_count = resultset.attribute('count').value.to_i
         @total_count    = datasource.attribute('total-count').value.to_i
-        
+
         # process field metadata
-        metadata.search('field-definition').each do |field|
-          @fields[field['name']] = Field.new(self, field)
-        end
-        @fields.freeze
+        fields_meta = meta.xpath('field-definition')
         
-        # process relatedset metadata
-        metadata.search('relatedset-definition').each do |relatedset|
-          table = relatedset.attribute('table').value
-          fields = {}
-          relatedset.search('field-definition').each do |field|
-            name = field.attribute('name').value.sub(Regexp.new(table + '::'), '')
-            fields[name] = Field.new(self, field)
+        fields_meta.each do |field|
+          @field_meta[field['name']] = FieldMeta.new(field)
+        end
+
+        if @include_portals
+          portal_fields_metadata = meta.xpath('relatedset-definition')
+          
+          portal_fields_metadata.each do |relatedset|
+            table, fields = relatedset.attribute('table').value, {}
+
+            relatedset.xpath('field-definition').each do |field|
+              name = field.attribute('name').value.gsub(Regexp.new(table + '::'), '')
+              fields[name] = FieldMeta.new(field)
+            end
+
+            @portal_meta[table] = fields
           end
-          @portals[table] = fields
         end
-        @portals.freeze
+
+        records = resultset.xpath('record')
+        Record.build_records(records, self, @field_meta, @layout)
         
-        # build record rows
-        resultset.search('record').each do |record|
-          self << Record.new(record, self, @fields, @layout)
-        end
       end  
           
-      attr_reader :server, :fields, :portals, :date_format, :time_format, :timestamp_format, :total_count, :foundset_count, :layout
+      attr_reader :layout
+      attr_reader :field_meta, :portal_meta
+      attr_reader :date_format, :time_format, :timestamp_format
+      attr_reader :total_count, :foundset_count
       
       private
       
-        def convertFormatString(fm_format)
+        def convert_format_string(fm_format)
           fm_format.gsub('MM', '%m').gsub('dd', '%d').gsub('yyyy', '%Y').gsub('HH', '%H').gsub('mm', '%M').gsub('ss', '%S')
         end
       
@@ -231,23 +235,24 @@ module Rfm
       
       # Initializes a Record object. You really really never need to do this yourself. Instead, get your records
       # from a ResultSet object.
-      def initialize(row_element, resultset, fields, layout, portal=nil)
-        @record_id = row_element['record-id']
-        @mod_id = row_element['mod-id']
+      def initialize(record, result, field_meta, layout, portal=nil)
+        @record_id = record['record-id']
+        @mod_id = record['mod-id']
         @mods = {}
-        @resultset = resultset
         @layout = layout
+        @portals ||= Rfm::Utility::CaseInsensitiveHash.new
+
+        relatedsets = !portal && result.instance_variable_get(:@include_portals) ? record.xpath('relatedset') : []
         
-        @loaded = false
-        related_sets = row_element.search('relatedset')
-        
-        row_element.search('field').each do |field| 
+        record.xpath('field').each do |field|
           field_name = field['name']
-          field_name.sub!(Regexp.new(portal + '::'), '') if portal
+          field_name.gsub!(Regexp.new(portal + '::'), '') if portal
           datum = []
-          field.search('data').each do |x| 
-            datum.push(fields[field_name].coerce(x.inner_text))
+          
+          field.xpath('data').each do |x| 
+            datum.push(FieldMeta.coerce(field_meta[field_name], x.inner_text, result))
           end
+        
           if datum.length == 1
             self[field_name] = datum[0]
           elsif datum.length == 0
@@ -257,18 +262,25 @@ module Rfm
           end
         end
         
-        unless related_sets.empty?
-          @portals = Rfm::Utility::CaseInsensitiveHash.new
-          related_sets.each do |relatedset|
-            table = relatedset['table']
-            records = []
-            relatedset.search('record').each do |record|
-              records << Record.new(record, @resultset, @resultset.portals[table], @layout, table)
+        unless relatedsets.empty?
+          relatedsets.each do |relatedset|
+            tablename, records = relatedset['table'], []
+        
+            relatedset.xpath('record').each do |record|
+              records << self.class.new(record, result, result.portal_meta[tablename], layout, tablename)
             end
-            @portals[table] = records
+        
+            @portals[tablename] = records
           end
         end
+        
         @loaded = true
+      end
+
+      def self.build_records(records, result, field_meta, layout, portal=nil)
+        records.each do |record|
+          result << self.new(record, result, field_meta, layout, portal)
+        end
       end
       
       attr_reader :record_id, :mod_id, :portals
@@ -397,45 +409,51 @@ module Rfm
     # The code above makes sure the control is always an array. Typically, though, you'll know up front
     # if the control is an array or not, and you can code accordingly.
     
-    class Field
+    class FieldMeta
       
       # Initializes a field object. You'll never need to do this. Instead, get your Field objects from
       # ResultSet::fields
-      def initialize(result_set, field)
-        @result_set = result_set
-        @name = field['name']
-        @result = field['result']
-        @type = field['type']
+      def initialize(field)
+        @name        = field['name']
+        @result      = field['result']
+        @type        = field['type']
         @max_repeats = field['max-repeats']
-        @global = field['global']
+        @global      = field['global']
         
         @loaded = false
       end
       
       attr_reader :name, :result, :type, :max_repeats, :global
-  
-      def control
-        @result_set.layout.field_controls[@name]
-      end
+      
+      ## TODO Move to layout since meta_data does not change between records for the same layout
+      ## delegate?
+      
+      #def control
+      #  @result_set.layout.field_controls[@name]
+      #end
+      
+      #def inspect
+      #  "#<Field( name: #{@name}, result: #{@result})>"
+      #end
   
       # Coerces the text value from an +fmresultset+ document into proper Ruby types based on the 
       # type of the field. You'll never need to do this: Rfm does it automatically for you when you
       # access field data through the Record object.
-      def coerce(value)
-        return nil if (value == nil || value == '') && @result != "text"
-        case @result
+      def self.coerce(obj, value, result_set)
+        return nil if (value == nil || value == '') && obj.result != "text"
+        case obj.result
         when "text"
           return value
         when "number"
           return BigDecimal.new(value)
         when "date"
-          return Date.strptime(value, @result_set.date_format)
+          return Date.strptime(value, result_set.date_format)
         when "time"
-          return DateTime.strptime("1/1/-4712 " + value, "%m/%d/%Y #{@result_set.time_format}")
+          return DateTime.strptime("1/1/-4712 " + value, "%m/%d/%Y #{result_set.time_format}")
         when "timestamp"
-          return DateTime.strptime(value, @result_set.timestamp_format)
+          return DateTime.strptime(value, result_set.timestamp_format)
         when "container"
-          return URI.parse("#{@result_set.server.scheme}://#{@result_set.server.host_name}:#{@result_set.server.port}#{value}")
+          return URI.parse("#{result_set.server.scheme}://#{result_set.server.host_name}:#{result_set.server.port}#{value}")
         else
           return nil
         end

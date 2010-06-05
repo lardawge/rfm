@@ -264,8 +264,9 @@ module Rfm
     end
     
     def get_records(action, extra_params = {}, options = {})
-      Rfm::Result::ResultSet.new(@db.server, @db.server.do_action(@db.account_name, 
-      @db.password, action, params().merge(extra_params), options).body, self)
+      include_portals = options[:include_portals] ? options.delete(:include_portals) : nil
+      xml_response = @db.server.do_action(@db.account_name, @db.password, action, params.merge(extra_params), options).body
+      Rfm::Result::ResultSet.new(@db.server, xml_response, self, include_portals)
     end
     
     def params
