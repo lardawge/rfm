@@ -12,3 +12,7 @@
       This will fetch all records with portal records attached.
       
       result.first.portals would return an empty hash by default.
+      
+* Internal file restructuring. Some classes have changed but it should be nothing a developer would use API wise. Please let me know if it is.
+
+* Removed Layout#value_lists && Layout#field_controls. Will put back in if the demand is high. Needs a major refactor and different placement if it goes back in. Was broken so it didn't seem to be used by many devs.

@@ -136,23 +136,9 @@ module Rfm
     def initialize(name, db)
       @name = name
       @db = db
-      
-      @loaded = false
-      @field_controls = Rfm::Utility::CaseInsensitiveHash.new
-      @value_lists = Rfm::Utility::CaseInsensitiveHash.new
     end
     
     attr_reader :name, :db
-    
-    def field_controls
-      load unless @loaded
-      @field_controls
-    end
-    
-    def value_lists
-      load unless @loaded
-      @value_lists
-    end
     
     # Returns a ResultSet object containing _every record_ in the table associated with this layout.
     def all(options = {})
@@ -223,50 +209,10 @@ module Rfm
     
     private
     
-    def load
-      @loaded = true
-      fmpxmllayout = @db.server.load_layout(self).body
-      doc = REXML::Document.new(fmpxmllayout)
-      root = doc.root
-      
-      # check for errors
-      error = root.elements['ERRORCODE'].text.to_i
-      raise Rfm::Error.getError(error) if error != 0
-      
-      # process valuelists
-      if root.elements['VALUELISTS'].size > 0
-        root.elements['VALUELISTS'].each_element('VALUELIST') { |valuelist|
-          name = valuelist.attributes['NAME']
-          @value_lists[name] = valuelist.elements.collect {|e| e.text}
-        }
-        @value_lists.freeze
-      end
-      
-      # process field controls
-      root.elements['LAYOUT'].each_element('FIELD') { |field| 
-        name = field.attributes['NAME']
-        style = field.elements['STYLE'].attributes['TYPE']
-        value_list_name = field.elements['STYLE'].attributes['VALUELIST']
-        value_list = @value_lists[value_list_name] if value_list_name != ''
-        field_control = FieldControl.new(name, style, value_list_name, value_list)
-        existing = @field_controls[name]
-        if existing
-          if existing.kind_of?(Array)
-            existing << field_control
-          else
-            @field_controls[name] = Array[existing, field_control]
-          end
-        else
-          @field_controls[name] = field_control
-        end
-      }
-      @field_controls.freeze      
-    end
-    
     def get_records(action, extra_params = {}, options = {})
       include_portals = options[:include_portals] ? options.delete(:include_portals) : nil
       xml_response = @db.server.do_action(@db.account_name, @db.password, action, params.merge(extra_params), options).body
-      Rfm::Result::ResultSet.new(@db.server, xml_response, self, include_portals)
+      Rfm::Resultset.new(@db.server, xml_response, self, include_portals)
     end
     
     def params

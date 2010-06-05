@@ -7,7 +7,7 @@
 
 module Rfm
   module Factory # :nodoc: all
-    class DbFactory < Rfm::Utility::CaseInsensitiveHash
+    class DbFactory < Rfm::CaseInsensitiveHash
     
       def initialize(server)
         @server = server
@@ -31,7 +31,7 @@ module Rfm
     
     end
     
-    class LayoutFactory < Rfm::Utility::CaseInsensitiveHash
+    class LayoutFactory < Rfm::CaseInsensitiveHash
     
       def initialize(server, database)
         @server = server
@@ -56,7 +56,7 @@ module Rfm
     
     end
     
-    class ScriptFactory < Rfm::Utility::CaseInsensitiveHash
+    class ScriptFactory < Rfm::CaseInsensitiveHash
     
       def initialize(server, database)
         @server = server
