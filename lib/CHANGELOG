@@ -1,5 +1,7 @@
 *Lardawge-Rfm 1.4.1 (unreleased)*
 
+* Changed Server#do_action to Server#connect
+
 * XML Parsing is now done via xpath which significantly speeds up parsing.
 
 * Changes to accessor method names for Resultset#portals Resultset#fields to Resultset#portal_meta and Resultset#field_meta to better describe what you get back.

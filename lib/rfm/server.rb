@@ -254,7 +254,7 @@ module Rfm
     # For example, if you wanted to send a raw command to FileMaker to find the first 20 people in the
     # "Customers" database whose first name is "Bill" you might do this:
     #
-    #   response = myServer.do_action(
+    #   response = myServer.connect(
     #     '-find',
     #     {
     #       "-db" => "Customers",
@@ -263,7 +263,7 @@ module Rfm
     #     },
     #     { :max_records => 20 }
     #   )
-    def do_action(account_name, password, action, args, options = {})
+    def connect(account_name, password, action, args, options = {})
       post = args.merge(expand_options(options)).merge({action => ''})
       http_fetch(@host_name, @port, "/fmi/xml/fmresultset.xml", account_name, password, post)
     end
@@ -300,7 +300,6 @@ module Rfm
         end
     
         response = response.start { |http| http.request(request) }
-    
         if @state[:log_responses] == true
           response.to_hash.each { |key, value| warn "#{key}: #{value}" }
           warn response.body
