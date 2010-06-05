@@ -7,7 +7,7 @@
 # License::   See MIT-LICENSE for details
 require 'nokogiri'
 require 'bigdecimal'
-require 'rfm/layout/record'
+require 'rfm/record'
 require 'rfm/metadata/field'
 
 module Rfm
