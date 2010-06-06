@@ -38,6 +38,11 @@ module Rfm
 
   class Resultset < Array
     
+    attr_reader :layout
+    attr_reader :field_meta, :portal_meta
+    attr_reader :date_format, :time_format, :timestamp_format
+    attr_reader :total_count, :foundset_count
+    
     # Initializes a new ResultSet object. You will probably never do this your self (instead, use the Layout
     # object to get various ResultSet obejects).
     #
@@ -59,52 +64,53 @@ module Rfm
     # * *portals* is a hash (with table occurrence names for keys and Field objects for values). If your
     #   layout contains portals, you can find out what fields they contain here. Again, if it's the data you're
     #   after, you want to look at the Record object.
+    
     def initialize(server, xml_response, layout, portals=nil)
       @layout = layout
-      @field_meta = Rfm::CaseInsensitiveHash.new
-      @portal_meta = Rfm::CaseInsensitiveHash.new
-      @date_format = nil
-      @time_format = nil
-      @timestamp_format = nil
-      @total_count = nil
-      @foundset_count = nil
-      @include_portals = portals 
+      @field_meta ||= Rfm::CaseInsensitiveHash.new
+      @portal_meta ||= Rfm::CaseInsensitiveHash.new
+      @include_portals  = portals 
       
-      doc = xml_response.gsub('xmlns="http://www.filemaker.com/xml/fmresultset" version="1.0"', '') #Remove response namespace to make parsing less verbose
-      doc = Nokogiri.XML(doc)
+      doc = Nokogiri.XML(remove_namespace(xml_response))
+      
+      error = doc.xpath('/fmresultset/error').attribute('code').value.to_i
+      check_for_errors(error, server.state[:raise_on_401])
 
-      #seperate content for less searching
-      datasource  = doc.xpath('/fmresultset/datasource')
-      meta        = doc.xpath('/fmresultset/metadata')
-      resultset   = doc.xpath('/fmresultset/resultset')
-      error       = doc.xpath('/fmresultset/error')
+      datasource        = doc.xpath('/fmresultset/datasource')
+      meta              = doc.xpath('/fmresultset/metadata')
+      resultset         = doc.xpath('/fmresultset/resultset')
+
+      @date_format      = convert_date_time_format(datasource.attribute('date-format').value)
+      @time_format      = convert_date_time_format(datasource.attribute('time-format').value)
+      @timestamp_format = convert_date_time_format(datasource.attribute('timestamp-format').value)
+
+      @foundset_count   = resultset.attribute('count').value.to_i
+      @total_count      = datasource.attribute('total-count').value.to_i
+
+      parse_fields(meta)
+      parse_portals(meta) if @include_portals
       
-      # check for errors
-      error_code = error.attribute('code').value.to_i
-      if error_code != 0 && (error_code != 401 || server.state[:raise_on_401])
-        raise Rfm::Error.getError(error_code) 
+      Rfm::Record.build_records(resultset.xpath('record'), self, @field_meta, @layout)
+      
+    end
+    
+    private
+      def remove_namespace(xml)
+        xml.gsub('xmlns="http://www.filemaker.com/xml/fmresultset" version="1.0"', '')
+      end
+    
+      def check_for_errors(code, raise_401)
+        raise Rfm::Error.getError(code) if code != 0 && (code != 401 || raise_401)
+      end
+    
+      def parse_fields(meta)
+        meta.xpath('field-definition').each do |field|
+          @field_meta[field['name']] = Rfm::Metadata::Field.new(field)
+        end
       end
 
-      # ascertain date and time formats
-      @date_format      = convert_format_string(datasource.attribute('date-format').value)
-      @time_format      = convert_format_string(datasource.attribute('time-format').value)
-      @timestamp_format = convert_format_string(datasource.attribute('timestamp-format').value)
-
-      # retrieve count
-      @foundset_count = resultset.attribute('count').value.to_i
-      @total_count    = datasource.attribute('total-count').value.to_i
-
-      # process field metadata
-      fields_meta = meta.xpath('field-definition')
-      
-      fields_meta.each do |field|
-        @field_meta[field['name']] = Rfm::Metadata::Field.new(field)
-      end
-
-      if @include_portals
-        portal_fields_metadata = meta.xpath('relatedset-definition')
-        
-        portal_fields_metadata.each do |relatedset|
+      def parse_portals(meta)
+        meta.xpath('relatedset-definition').each do |relatedset|
           table, fields = relatedset.attribute('table').value, {}
 
           relatedset.xpath('field-definition').each do |field|
@@ -115,21 +121,15 @@ module Rfm
           @portal_meta[table] = fields
         end
       end
-
-      records = resultset.xpath('record')
-      Rfm::Record.build_records(records, self, @field_meta, @layout)
-      
-    end  
-        
-    attr_reader :layout
-    attr_reader :field_meta, :portal_meta
-    attr_reader :date_format, :time_format, :timestamp_format
-    attr_reader :total_count, :foundset_count
     
-    private
-    
-      def convert_format_string(fm_format)
-        fm_format.gsub('MM', '%m').gsub('dd', '%d').gsub('yyyy', '%Y').gsub('HH', '%H').gsub('mm', '%M').gsub('ss', '%S')
+      def convert_date_time_format(fm_format)
+        fm_format.gsub!('MM', '%m')
+        fm_format.gsub!('dd', '%d')
+        fm_format.gsub!('yyyy', '%Y')
+        fm_format.gsub!('HH', '%H')
+        fm_format.gsub!('mm', '%M')
+        fm_format.gsub!('ss', '%S')
+        fm_format
       end
     
   end
