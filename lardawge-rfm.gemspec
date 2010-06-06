@@ -17,14 +17,13 @@ Gem::Specification.new do |s|
      "README.rdoc"
   ]
   s.files = [
-    "lib/CHANGELOG",
-     "lib/rfm.rb",
+    "lib/rfm.rb",
      "lib/rfm/database.rb",
      "lib/rfm/error.rb",
      "lib/rfm/layout.rb",
-     "lib/rfm/layout/record.rb",
      "lib/rfm/metadata/field.rb",
      "lib/rfm/metadata/script.rb",
+     "lib/rfm/record.rb",
      "lib/rfm/resultset.rb",
      "lib/rfm/server.rb",
      "lib/rfm/utilities/case_insensitive_hash.rb",
