@@ -15,7 +15,7 @@ module Rfm
     #
     # =Attributes
     #
-    # The Field object has the following attributes useful attributes:
+    # The Field object has the following attributes:
     #
     # * *name* is the name of the field
     #
@@ -59,6 +59,8 @@ module Rfm
     
     class Field
       
+      attr_reader :name, :result, :type, :max_repeats, :global
+      
       # Initializes a field object. You'll never need to do this. Instead, get your Field objects from
       # ResultSet::fields
       def initialize(field)
@@ -67,33 +69,23 @@ module Rfm
         @type        = field['type']
         @max_repeats = field['max-repeats']
         @global      = field['global']
-        
-        @loaded = false
       end
-      
-      attr_reader :name, :result, :type, :max_repeats, :global
     
       # Coerces the text value from an +fmresultset+ document into proper Ruby types based on the 
       # type of the field. You'll never need to do this: Rfm does it automatically for you when you
       # access field data through the Record object.
-      def self.coerce(obj, value, result_set)
-        return nil if (value == nil || value == '') && obj.result != "text"
-        case obj.result
-        when "text"
-          return value
-        when "number"
-          return BigDecimal.new(value)
-        when "date"
-          return Date.strptime(value, result_set.date_format)
-        when "time"
-          return DateTime.strptime("1/1/-4712 " + value, "%m/%d/%Y #{result_set.time_format}")
-        when "timestamp"
-          return DateTime.strptime(value, result_set.timestamp_format)
-        when "container"
-          return URI.parse("#{result_set.server.scheme}://#{result_set.server.host_name}:#{result_set.server.port}#{value}")
-        else
-          return nil
+      def coerce(value, resultset)
+        return nil if value.empty?
+        case self.result
+        when "text"      then value
+        when "number"    then BigDecimal.new(value)
+        when "date"      then Date.strptime(value, resultset.date_format)
+        when "time"      then DateTime.strptime("1/1/-4712 #{value}", "%m/%d/%Y #{resultset.time_format}")
+        when "timestamp" then DateTime.strptime(value, resultset.timestamp_format)
+        when "container" then URI.parse("#{resultset.server.scheme}://#{resultset.server.host_name}:#{resultset.server.port}#{value}")
+        else nil
         end
+        
       end
       
     end

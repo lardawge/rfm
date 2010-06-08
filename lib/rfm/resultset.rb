@@ -66,9 +66,9 @@ module Rfm
     #   after, you want to look at the Record object.
     
     def initialize(server, xml_response, layout, portals=nil)
-      @layout = layout
-      @field_meta ||= Rfm::CaseInsensitiveHash.new
-      @portal_meta ||= Rfm::CaseInsensitiveHash.new
+      @layout           = layout
+      @field_meta     ||= Rfm::CaseInsensitiveHash.new
+      @portal_meta    ||= Rfm::CaseInsensitiveHash.new
       @include_portals  = portals 
       
       doc = Nokogiri.XML(remove_namespace(xml_response))
