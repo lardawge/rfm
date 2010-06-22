@@ -322,7 +322,7 @@ module Rfm
           msg = "Could not talk to FileMaker because the Web Publishing Engine is not responding (server returned 404)."
           raise Rfm::CommunicationError.new(msg)
         else
-          msg = "Unexpected response from server: #{result.code} (#{result.class.to_s}). Unable to communicate with the Web Publishing Engine."
+          msg = "Unexpected response from server: #{response.code} (#{response.class.to_s}). Unable to communicate with the Web Publishing Engine."
           raise Rfm::CommunicationError.new(msg)
         end
       end
