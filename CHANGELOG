@@ -1,4 +1,4 @@
-*Lardawge-Rfm 1.4.1 (unreleased)*
+*Lardawge-Rfm 1.4.1*
 
 * Changed Server#do_action to Server#connect
 
