@@ -5,11 +5,11 @@
 
 Gem::Specification.new do |s|
   s.name = %q{lardawge-rfm}
-  s.version = "1.4.1"
+  s.version = "1.4.1.1"
 
   s.required_rubygems_version = Gem::Requirement.new(">= 0") if s.respond_to? :required_rubygems_version=
   s.authors = ["Geoff Coffey", "Mufaddal Khumri", "Atsushi Matsuo", "Larry Sprock"]
-  s.date = %q{2010-06-28}
+  s.date = %q{2010-07-03}
   s.description = %q{Rfm brings your FileMaker data to Ruby. Now your Ruby scripts and Rails applications can talk directly to your FileMaker server.}
   s.email = %q{http://groups.google.com/group/rfmcommunity}
   s.extra_rdoc_files = [
