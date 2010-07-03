@@ -38,7 +38,7 @@ module Rfm
 
   class Resultset < Array
     
-    attr_reader :layout
+    attr_reader :layout, :server
     attr_reader :field_meta, :portal_meta
     attr_reader :date_format, :time_format, :timestamp_format
     attr_reader :total_count, :foundset_count
@@ -67,6 +67,7 @@ module Rfm
     
     def initialize(server, xml_response, layout, portals=nil)
       @layout           = layout
+      @server           = server
       @field_meta     ||= Rfm::CaseInsensitiveHash.new
       @portal_meta    ||= Rfm::CaseInsensitiveHash.new
       @include_portals  = portals 
