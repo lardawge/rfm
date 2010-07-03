@@ -1,3 +1,7 @@
+*Lardawge-Rfm 1.4.1.1*
+
+* [Bug] Inadvertently left out an attr_reader for server from resultset effecting container urls.
+
 *Lardawge-Rfm 1.4.1*
 
 * Changed Server#do_action to Server#connect
