@@ -189,24 +189,20 @@ module Rfm
     #
     # When you do, the change is noted, but *the data is not updated in FileMaker*. You must call
     # Record::save or Record::save_if_not_modified to actually save the data.
-    def []=(pname, value)
-      return super unless @loaded # keeps us from getting mods during initialization
-      name = pname
-      if self[name] != nil
-        @mods[name] = val
-      else
-        raise Rfm::Error::ParameterError.new("You attempted to modify a field called '#{name}' on the Rfm::Record object, but that field does not exist.")
-      end
+    def []=(name, value)
+      return super unless @loaded
+      raise Rfm::ParameterError, "You attempted to modify a field does not exist." unless self[name]
+      @mods[name] = value
     end
     
     def method_missing (symbol, *attrs)
+      method = symbol.to_s
       # check for simple getter
-      return self[symbol.to_s] if self.include?(symbol.to_s) 
+      return self[method] if self.include?(method) 
 
       # check for setter
-      symbol_name = symbol.to_s
-      if symbol_name[-1..-1] == '=' && self.has_key?(symbol_name[0..-2])
-        return @mods[symbol_name[0..-2]] = attrs[0]
+      if method =~ /(=)$/ && self.has_key?($`)
+        return @mods[$`] = attrs.first
       end
       super
     end
