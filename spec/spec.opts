@@ -1,6 +1,6 @@
 --colour
---format
-profile
---timeout
-20
---diff
+--format specdoc
+--backtrace
+--timeout 20
+--diff unified
+--require spec/spec_helper
