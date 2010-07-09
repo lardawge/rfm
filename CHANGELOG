@@ -1,10 +1,14 @@
+*Lardawge-Rfm 1.4.1.2*
+
+* [Bug] Pointing out why testing is soooooo important when refactoring... Found a bug in getter/setter method in Rfm::Record (yes, added spec for it).
+
 *Lardawge-Rfm 1.4.1.1*
 
 * [Bug] Inadvertently left out an attr_reader for server from resultset effecting container urls.
 
 *Lardawge-Rfm 1.4.1*
 
-* Changed Server#do_action to Server#connect
+* Changed Server#do_action to Server#connect.
 
 * XML Parsing is now done via xpath which significantly speeds up parsing.
 
