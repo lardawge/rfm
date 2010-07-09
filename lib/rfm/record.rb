@@ -195,21 +195,22 @@ module Rfm
       @mods[name] = value
     end
     
-    def method_missing (symbol, *attrs)
-      method = symbol.to_s
-      # check for simple getter
-      return self[method] if self.include?(method) 
-
-      # check for setter
-      if method =~ /(=)$/ && self.has_key?($`)
-        return @mods[$`] = attrs.first
-      end
+    def respond_to?(symbol, include_private = false)
+      return true if self[symbol.to_s]
       super
     end
     
-    def respond_to?(symbol, include_private = false)
-      return true if self[symbol.to_s] != nil
-      super
-    end
+    private
+    
+      def method_missing (symbol, *attrs, &block)
+        method = symbol.to_s
+        return self[method] if self.include?(method) 
+      
+        if method =~ /(=)$/ && self.has_key?($`)
+          return @mods[$`] = attrs.first
+        end
+        super
+      end
+    
   end
 end
