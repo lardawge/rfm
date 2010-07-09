@@ -1,3 +1,5 @@
+= Warning
+  Master branch is very unstable at this point because I am pushing major changes. The stable branch is v1.4.
 = Rfm
 
 This version of rfm is a significant upgrade to rfm in a few ways. First and most important (to me anyway) is it allows for the use of secure connections and certificate files.
