@@ -1,8 +1,11 @@
 require 'rfm/record'
 describe Rfm::Record do
+  before(:each) do
+    @record = Rfm::Record.allocate
+  end
+  
   describe "#[]=" do
     before(:each) do
-      @record = Rfm::Record.allocate
       @record.instance_variable_set(:@mods, {})
       @record.instance_variable_set(:@loaded, false)
       @record['tester'] = 'red'
@@ -31,9 +34,20 @@ describe Rfm::Record do
     
   end
   
+  describe "#respond_to?" do
+    it "returns true if key is in hash" do
+      @record['red'] = 'stop'
+      
+      @record.respond_to?(:red).should be_true
+    end
+    
+    it "returns false if key is not in hash" do
+      @record.respond_to?(:red).should be_false
+    end
+  end
+  
   describe "#method_missing" do
     before(:each) do
-      @record = Rfm::Record.allocate
       @record.instance_variable_set(:@mods, {})
       @record['name'] = 'red'
     end
