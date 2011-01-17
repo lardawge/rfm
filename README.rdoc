@@ -2,18 +2,6 @@
   Master branch is unstable at this point because I am pushing major changes. The stable branch is v1.4.
 = Rfm
 
-This version of rfm is a significant upgrade to rfm in a few ways. First and most important (to me anyway) is it allows for the use of secure connections and certificate files.
-Rfm 1.0.0 is broken in that way and does not allow for this. Second it has a few bug fixes that were never pushed to rfm 1.0.0. Last but not least is that the xml parser is
-switched to nokogiri which is a huge speed improvement over REXML (used in rfm 1.0.0) on large datasets.
-
-Rfm was originally designed by Six Fried Rice co-founder Geoff Coffey.
-
-Other lead contributors:
-
-- Mufaddal Khumri helped architect Rfm in the most ruby-like way possible. He also contributed the outstanding error handling code and a comprehensive hierarchy of error classes.
-- Atsushi Matsuo was an early Rfm tester, and provided outstanding feedback, critical code fixes, and a lot of web exposure.
-- Jesse Antunes helped ensure that Rfm is stable and functional.
-- Larry Sprock added ssl support and switched the xml parser to a much faster Nokogiri.
 
 Rdoc location: http://rdoc.info/projects/lardawge/rfm
 
