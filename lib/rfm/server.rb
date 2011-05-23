@@ -288,7 +288,8 @@ module Rfm
         request.set_form_data(post_data)
     
         response = Net::HTTP.new(host_name, port)
-    
+        #ADDED LONG TIMEOUT TIMOTHY TING 05/12/2011
+        response.open_timeout = response.read_timeout = 600
         if @state[:ssl]
           response.use_ssl = true
           if @state[:root_cert]
