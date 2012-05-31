@@ -206,7 +206,8 @@ module Rfm
         :log_actions => false,
         :log_responses => false,
         :warn_on_redirect => true,
-        :raise_on_401 => false
+        :raise_on_401 => false,
+        :timeout => 60
       }.merge(options)
     
       @state.freeze
@@ -288,7 +289,8 @@ module Rfm
         request.set_form_data(post_data)
     
         response = Net::HTTP.new(host_name, port)
-    
+        #ADDED LONG TIMEOUT TIMOTHY TING 05/12/2011
+        response.open_timeout = response.read_timeout = @state[:timeout]
         if @state[:ssl]
           response.use_ssl = true
           if @state[:root_cert]
