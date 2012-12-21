@@ -192,11 +192,11 @@ module Rfm
     def []=(name, value)
       return super unless @loaded
       raise Rfm::ParameterError, 
-        "You attempted to modify a field that does not exist in the current Filemaker layout." unless self.key?(name)
+        "You attempted to modify the field :#{name} which does not exist in the current Filemaker layout." unless self.key?(name)
       @mods[name] = value
     end
 
-    alias :_old_hash_reader :[]
+    alias :_original_hash_reader :[]
     def [](value)
       read_attribute(value)
     end
@@ -210,11 +210,11 @@ module Rfm
 
       def read_attribute(key)
         raise NoMethodError, 
-                "#{key.to_s} does not exists as a field in the current Filemaker layout." unless self.key?(key)
-        self._old_hash_reader(key).empty? ? nil : self._old_hash_reader(key) if self._old_hash_reader(key)
+          "#{key} does not exists as a field in the current Filemaker layout." unless key?(key)
+        _original_hash_reader(key)
       end
 
-      def method_missing (symbol, *attrs, &block)
+      def method_missing(symbol, *attrs, &block)
         method = symbol.to_s
         return read_attribute(method) if self.key?(method)
       
