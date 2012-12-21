@@ -1,9 +1,8 @@
-$LOAD_PATH.unshift(File.dirname(__FILE__))
-$LOAD_PATH.unshift(File.join(File.dirname(__FILE__), '..', 'lib'))
+require 'rubygems'
+require 'bundler/setup'
+require 'logger'
 require 'rfm'
-require 'spec'
-require 'spec/autorun'
 
-Spec::Runner.configure do |config|
-  
+RSpec.configure do |c|
+  c.mock_with :mocha
 end
