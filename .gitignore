@@ -5,3 +5,4 @@ local_testing
 coverage
 rdoc
 pkg
+Gemfile.lock
