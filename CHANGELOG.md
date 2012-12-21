@@ -26,7 +26,6 @@
   * Changes to accessor method names for Resultset#portals Resultset#fields to Resultset#portal_meta and Resultset#field_meta to better describe what you get back.
   * Added an option to load portal records which defaults to false. This significantly speeds up load time when portals are present on the layout.
 
-    Example:
     ```ruby
     # This will fetch all records with portal records attached.
     result = fm_server('layout').find({:username => "==#{username}"}, {:include_portals => true})      
