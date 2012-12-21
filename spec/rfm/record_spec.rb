@@ -37,7 +37,7 @@ describe Rfm::Record do
 
       ex = rescue_from { @record['tester2'] }
       ex.class.should eql(NoMethodError)
-      ex.message.should eql('tester2 does not exists as a field in the current Filemaker layout.')
+      ex.message.should eql('tester2 does not exist as a field in the current Filemaker layout.')
     end
     
   end
