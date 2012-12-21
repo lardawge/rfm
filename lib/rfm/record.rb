@@ -210,7 +210,7 @@ module Rfm
 
       def read_attribute(key)
         raise NoMethodError, 
-          "#{key} does not exists as a field in the current Filemaker layout." unless key?(key)
+          "#{key} does not exist as a field in the current Filemaker layout." unless key?(key)
         _original_hash_reader(key)
       end
 
