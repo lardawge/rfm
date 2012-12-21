@@ -1,6 +1,6 @@
 # Rfm
 
-Rdoc location: http://rdoc.info/projects/lardawge/rfm
+[![Build Status](https://travis-ci.org/lardawge/rfm.png?branch=master)](https://travis-ci.org/lardawge/rfm)
 
 ## Installation
 
