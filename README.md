@@ -2,6 +2,7 @@
 
 [![Build Status](https://travis-ci.org/lardawge/rfm.png?branch=master)](https://travis-ci.org/lardawge/rfm)
 [![Code Quality](https://codeclimate.com/badge.png)](https://codeclimate.com/github/lardawge/rfm)
+[![Still Maintained](http://stillmaintained.com/lardawge/rfm.png)](http://stillmaintained.com/lardawge/rfm)
 
 ## Installation
 
