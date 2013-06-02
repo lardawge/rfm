@@ -1,5 +1,6 @@
 require 'net/https'
-require 'cgi'
+require 'addressable/uri'
+
 module Rfm
   # This class represents a single FileMaker server. It is initialized with basic
   # connection information, including the hostname, port number, and default database
@@ -211,9 +212,9 @@ module Rfm
     
       @state.freeze
     
-      @host_name = @state[:host]
-      @scheme = @state[:ssl] ? "https" : "http"
-      @port = @state[:ssl] && options[:port].nil? ? 443 : @state[:port]
+      scheme = @state[:ssl] ? "https" : "http"
+      port = @state[:ssl] && options[:port].nil? ? 443 : @state[:port]
+      @uri = Addressable::URI.parse("#{scheme}://#{@state[:host]}:#{port}")
     
       @db = Rfm::Factory::DbFactory.new(self)
     end
@@ -234,7 +235,7 @@ module Rfm
       self.db[dbname]
     end
     
-    attr_reader :db, :host_name, :port, :scheme, :state
+    attr_reader :db, :state, :uri
     
     # Performs a raw FileMaker action. You will generally not call this method directly, but it
     # is exposed in case you need to do something "under the hood."
@@ -263,70 +264,78 @@ module Rfm
     #     },
     #     { :max_records => 20 }
     #   )
-    def connect(account_name, password, action, args, options = {})
+    def connect(action, args, options = {})
       post = args.merge(expand_options(options)).merge({action => ''})
-      http_fetch(@host_name, @port, "/fmi/xml/fmresultset.xml", account_name, password, post)
+      http_fetch("/fmi/xml/fmresultset.xml", post)
     end
     
     def load_layout(layout)
       post = {'-db' => layout.db.name, '-lay' => layout.name, '-view' => ''}
-      http_fetch(@host_name, @port, "/fmi/xml/FMPXMLLAYOUT.xml", layout.db.account_name, layout.db.password, post)
+      http_fetch("/fmi/xml/FMPXMLLAYOUT.xml", post)
     end
     
     private
     
-      def http_fetch(host_name, port, path, account_name, password, post_data, limit=10)
+      def http_fetch(path, post_data, limit=10)
         raise Rfm::CommunicationError.new("While trying to reach the Web Publishing Engine, RFM was redirected too many times.") if limit == 0
     
-        if @state[:log_actions] == true
-          qs = post_data.collect{|key,val| "#{CGI::escape(key.to_s)}=#{CGI::escape(val.to_s)}"}.join("&")
-          warn "#{@scheme}://#{@host_name}:#{@port}#{path}?#{qs}"
-        end
+        uri.path = path
+        uri.query_values = post_data
+        warn uri.to_s if state[:log_actions] == true
     
-        request = Net::HTTP::Post.new(path)
-        request.basic_auth(account_name, password)
+        request = Net::HTTP::Post.new(uri.path)
+        request.basic_auth(state[:account_name], state[:password])
         request.set_form_data(post_data)
     
-        response = Net::HTTP.new(host_name, port)
+        response = Net::HTTP.new(uri.host, uri.port)
     
-        if @state[:ssl]
+        if state[:ssl]
           response.use_ssl = true
-          if @state[:root_cert]
+          if state[:root_cert]
             response.verify_mode = OpenSSL::SSL::VERIFY_PEER
-            response.ca_file = File.join(@state[:root_cert_path], @state[:root_cert_name])
+            response.ca_file = File.join(state[:root_cert_path], state[:root_cert_name])
           else
             response.verify_mode = OpenSSL::SSL::VERIFY_NONE
           end
         end
     
         response = response.start { |http| http.request(request) }
-        if @state[:log_responses] == true
+        if state[:log_responses] == true
           response.to_hash.each { |key, value| warn "#{key}: #{value}" }
           warn response.body
         end
+
+        parse_response(response, limit)
+      end
     
+      def parse_response(response, limit)
         case response
         when Net::HTTPSuccess
           response
         when Net::HTTPRedirection
-          if @state[:warn_on_redirect]
-            warn "The web server redirected to " + response['location'] + 
-            ". You should revise your connection hostname or fix your server configuration if possible to improve performance."
+          if state[:warn_on_redirect]
+            warn "The web server redirected to #{response['location']}.
+                 You should revise your connection hostname or fix your server configuration if possible to improve performance."
           end
-          newloc = URI.parse(response['location'])
-          http_fetch(newloc.host, newloc.port, newloc.request_uri, account_name, password, post_data, limit - 1)
+
+          newloc = Addressable::URI.parse(response['location'])
+          uri.host = newloc.host
+          uri.port = newloc.port
+          http_fetch(newloc.path, newloc.query_values, limit-1)
         when Net::HTTPUnauthorized
-          msg = "The account name (#{account_name}) or password provided is not correct (or the account doesn't have the fmxml extended privilege)."
+          msg = "The account name (#{state[:account_name]}) or password provided is not correct
+                (or the account doesn't have the fmxml extended privilege)."
           raise Rfm::AuthenticationError.new(msg)
         when Net::HTTPNotFound
           msg = "Could not talk to FileMaker because the Web Publishing Engine is not responding (server returned 404)."
           raise Rfm::CommunicationError.new(msg)
         else
-          msg = "Unexpected response from server: #{response.code} (#{response.class.to_s}). Unable to communicate with the Web Publishing Engine."
+          msg = "Unexpected response from server: #{response.code} (#{response.class.to_s}).
+                Unable to communicate with the Web Publishing Engine."
           raise Rfm::CommunicationError.new(msg)
         end
       end
-    
+
       def expand_options(options)
         result = {}
         options.each do |key,value|
