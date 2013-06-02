@@ -59,6 +59,9 @@ module Rfm
   # * *state* is a hash of all server options used to initialize this server
   class Database
   
+    attr_reader :server, :name, :account_name, :password, :layout, :script
+    attr_writer :account_name, :password
+
     # Initialize a database object. You never really need to do this. Instead, just do this:
     # 
     #   myServer = Rfm::Server.new(...)
@@ -74,9 +77,6 @@ module Rfm
       @script = Rfm::Factory::ScriptFactory.new(server, self)
     end
     
-    attr_reader :server, :name, :account_name, :password, :layout, :script
-    attr_writer :account_name, :password
-
     # Access the Layout object representing a layout in this database. For example:
     #
     #   myDatabase['Details']
