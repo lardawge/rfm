@@ -195,7 +195,6 @@ module Rfm
     #            :root_cert_name => 'example.pem'
     #            :root_cert_path => '/usr/cert_file/'
     #            })
-    
     def initialize(options)
       @state = {
         :host => 'localhost',
@@ -206,10 +205,10 @@ module Rfm
         :root_cert_path => '/',
         :account_name => '',
         :password => '',
-        :log_actions => false,
-        :log_responses => false,
+        :log_actions => nil,
+        :log_responses => nil,
         :warn_on_redirect => true,
-        :raise_on_401 => false
+        :raise_on_401 => nil
       }.merge(options)
     
       @state.freeze
