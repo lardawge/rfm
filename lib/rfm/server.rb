@@ -281,7 +281,7 @@ module Rfm
     
         uri.path = path
         uri.query_values = post_data
-        warn uri.to_s if state[:log_actions] == true
+        warn uri.to_s if state[:log_actions]
     
         request = Net::HTTP::Post.new(uri.path)
         request.basic_auth(state[:account_name], state[:password])
