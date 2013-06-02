@@ -108,7 +108,9 @@ module Rfm
   # * *name* is the name of this database
   # * *state* is a hash of all server options used to initialize this server
   class Server
-    #
+
+    attr_reader :db, :state, :uri
+
     # To create a Server object, you typically need at least a host name:
     # 
     #   myServer = Rfm::Server.new({:host => 'my.host.com'})
@@ -218,7 +220,7 @@ module Rfm
     
       @db = Rfm::Factory::DbFactory.new(self)
     end
-    
+
     # Access the database object representing a database on the server. For example:
     #
     #   myServer['Customers']
@@ -234,9 +236,7 @@ module Rfm
     def [](dbname)
       self.db[dbname]
     end
-    
-    attr_reader :db, :state, :uri
-    
+
     # Performs a raw FileMaker action. You will generally not call this method directly, but it
     # is exposed in case you need to do something "under the hood."
     # 
