@@ -210,14 +210,9 @@ module Rfm
         :warn_on_redirect => true,
         :raise_on_401 => nil
       }.merge(options)
-    
-      @state.freeze
-    
-      scheme = @state[:ssl] ? "https" : "http"
-      port = @state[:ssl] && options[:port].nil? ? 443 : @state[:port]
-      @uri = Addressable::URI.parse("#{scheme}://#{@state[:host]}:#{port}")
-    
-      @db = Rfm::Factory::DbFactory.new(self)
+
+      @uri = Addressable::URI.parse("#{scheme}://#{state[:host]}:#{port}")
+      @db  = Rfm::Factory::DbFactory.new(self)
     end
 
     # Access the database object representing a database on the server. For example:
@@ -267,14 +262,14 @@ module Rfm
       post = args.merge(expand_options(options)).merge({action => ''})
       http_fetch("/fmi/xml/fmresultset.xml", post)
     end
-    
+
     def load_layout(layout)
       post = {'-db' => layout.db.name, '-lay' => layout.name, '-view' => ''}
       http_fetch("/fmi/xml/FMPXMLLAYOUT.xml", post)
     end
-    
+
     private
-    
+
       def http_fetch(path, post_data, limit=10)
         raise Rfm::CommunicationError.new("While trying to reach the Web Publishing Engine, RFM was redirected too many times.") if limit == 0
     
@@ -306,7 +301,7 @@ module Rfm
 
         parse_response(response, limit)
       end
-    
+
       def parse_response(response, limit)
         case response
         when Net::HTTPSuccess
@@ -389,6 +384,22 @@ module Rfm
           end
         end
         return result
+      end
+
+      def scheme
+        if state[:ssl]
+          "https"
+        else
+          "http"
+        end
+      end
+
+      def port
+        if state[:ssl] && state[:port] == 80
+          443
+        else
+          state[:port]
+        end
       end
     
   end
