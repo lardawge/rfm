@@ -120,6 +120,8 @@ module Rfm
   
   class Layout
     
+    attr_reader :name, :db
+
     # Initialize a layout object. You never really need to do this. Instead, just do this:
     # 
     #   myServer = Rfm::Server.new(...)
@@ -137,8 +139,6 @@ module Rfm
       @name = name
       @db = db
     end
-    
-    attr_reader :name, :db
     
     # Returns a ResultSet object containing _every record_ in the table associated with this layout.
     def all(options = {})
@@ -209,14 +209,14 @@ module Rfm
     
     private
     
-    def get_records(action, extra_params = {}, options = {})
-      include_portals = options[:include_portals] ? options.delete(:include_portals) : nil
-      xml_response = @db.server.connect(action, params.merge(extra_params), options).body
-      Rfm::Resultset.new(@db.server, xml_response, self, include_portals)
+    def get_records(action, params = {}, options = {})
+      include_portals = options.delete(:include_portals)
+      xml_response = db.server.connect(action, default_params.merge(params), options)
+      Rfm::Resultset.new(db.server, xml_response.body, self, include_portals)
     end
     
-    def params
-      {"-db" => @db.name, "-lay" => self.name}
+    def default_params
+      {"-db" => db.name, "-lay" => self.name}
     end
   end
 end
