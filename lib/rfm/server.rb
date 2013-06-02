@@ -300,7 +300,7 @@ module Rfm
         end
     
         response = response.start { |http| http.request(request) }
-        if state[:log_responses] == true
+        if state[:log_responses]
           response.to_hash.each { |key, value| warn "#{key}: #{value}" }
           warn response.body
         end
