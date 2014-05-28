@@ -32,11 +32,11 @@ IMPORTANT:SSL and Certificate verification are on by default. Please see Server#
 You connect with the Rfm::Server object. This little buddy will be your window into FileMaker data.
 
 ```ruby
-require 'rfm/rfm'
+require 'rfm'
 
 my_server = Rfm::Server.new(
   :host => 'myservername',
-  :username => 'user',
+  :account_name => 'user',
   :password => 'pw',
   :ssl => false
 )
@@ -47,9 +47,9 @@ if your web publishing engine runs on a port other than 80, you can provide the 
 ```ruby
 my_server = Rfm::Server.new(
   :host => 'myservername',
-  :username => 'user',
+  :account_name => 'user',
   :password => 'pw',
-  :port => 8080, 
+  :port => 8080,
   :ssl => false
 )
 ```
@@ -228,7 +228,7 @@ my_order = order_layout.any[0]  # the [0] is important!
 my_lines = my_order.portals["Line Items"]
 ```
 
-At the end of the previous block of code, my_lines is an array of Record objects. In this case, they are the records in the "Line Items" portal for the particular order record. You can then operate on them as you would any other record. 
+At the end of the previous block of code, my_lines is an array of Record objects. In this case, they are the records in the "Line Items" portal for the particular order record. You can then operate on them as you would any other record.
 
 NOTE: Fields on a portal have the table name and the "::" stripped off of their names if they belong to the table the portal is tied to. In other words, if our "Line Items" portal includes a quantity field and a price field, you would do this:
 
@@ -291,7 +291,7 @@ So, for an annoying, but detailed load of output, make a connection like this:
 ```ruby
 my_server # Rfm::Server.new(
   :host #> 'myservername',
-  :username #> 'user',
+  :account_name #> 'user',
   :password #> 'pw',
   :log_actions #> true,
   :log_responses #> true
