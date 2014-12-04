@@ -208,7 +208,8 @@ module Rfm
         :log_actions => nil,
         :log_responses => nil,
         :warn_on_redirect => true,
-        :raise_on_401 => nil
+        :raise_on_401 => nil,
+        :timeout => 60
       }.merge(options)
 
       @uri = Addressable::URI.parse("#{scheme}://#{state[:host]}:#{port}")
@@ -282,6 +283,7 @@ module Rfm
         request.set_form_data(post_data)
     
         response = Net::HTTP.new(uri.host, uri.port)
+        response.open_timeout = response.read_timeout = @state[:timeout]
     
         if state[:ssl]
           response.use_ssl = true
