@@ -224,7 +224,7 @@ This version will refuse to update the database and raise an error if the record
 Record objects also have portals. While the portals in a ResultSet tell you about the tables and fields the portals show, the portals in a Record have the actual data. For example, if an Order record has Line Item records, you could do this:
 
 ```ruby
-my_order = order_layout.any[0]  # the [0] is important!
+my_order = order_layout.any(include_portals: true)[0]  # the [0] is important!
 my_lines = my_order.portals["Line Items"]
 ```
 
