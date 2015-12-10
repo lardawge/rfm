@@ -4,9 +4,6 @@ This library is no longer maintained. It is known to work up to Filemaker versio
 
 ~L
 
-[![Build Status](https://travis-ci.org/lardawge/rfm.png?branch=master)](https://travis-ci.org/lardawge/rfm)
-[![Code Quality](https://codeclimate.com/badge.png)](https://codeclimate.com/github/lardawge/rfm)
-
 ## Installation
 
 Terminal:
