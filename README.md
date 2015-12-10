@@ -1,8 +1,11 @@
 # Rfm
 
+This library is no longer maintained. It is known to work up to Filemaker version 14. Beyond that there are no guarantee that it will work. There is currently a maintained fork that goes under a different gem name here: https://github.com/ginjo/rfm
+
+~L
+
 [![Build Status](https://travis-ci.org/lardawge/rfm.png?branch=master)](https://travis-ci.org/lardawge/rfm)
 [![Code Quality](https://codeclimate.com/badge.png)](https://codeclimate.com/github/lardawge/rfm)
-[![Still Maintained](http://stillmaintained.com/lardawge/rfm.png)](http://stillmaintained.com/lardawge/rfm)
 
 ## Installation
 
