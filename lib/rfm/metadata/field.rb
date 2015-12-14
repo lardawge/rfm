@@ -71,6 +71,14 @@ module Rfm
         @global      = field['global']
       end
 
+      def parse_date(value, format)
+        begin
+          Date.strptime(value, format)
+        rescue ArgumentError
+          nil
+        end
+      end
+
       # Coerces the text value from an +fmresultset+ document into proper Ruby types based on the
       # type of the field. You'll never need to do this: Rfm does it automatically for you when you
       # access field data through the Record object.
@@ -79,7 +87,7 @@ module Rfm
         case self.result
         when "text"      then value
         when "number"    then BigDecimal.new(value)
-        when "date"      then Date.strptime(value, resultset.date_format)
+        when "date"      then parse_date(value, resultset.date_format)
         when "time"      then DateTime.strptime("1/1/-4712 #{value}", "%m/%d/%Y #{resultset.time_format}")
         when "timestamp" then DateTime.strptime(value, resultset.timestamp_format)
         when "container" then URI.parse("#{resultset.server.uri.scheme}://#{resultset.server.uri.host}:#{resultset.server.uri.port}#{value}")
